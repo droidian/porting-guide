@@ -1,0 +1,157 @@
+Kernel compilation
+==================
+
+The stock Android kernel is unfortunately not enough to be able to run
+hybris-mobian.
+
+The good news is that, on GSI-capable devices, often only kernel changes
+are necessary.
+
+Table of contents
+-----------------
+
+* [Summary](#summary)
+* [Prerequisites](#prerequisites)
+* [Package bring-up](#package-bring-up)
+* [Compiling](#compiling)
+* [Obtaining the boot image](#obtaining-the-boot-image)
+* [Committing changes](#committing-changes)
+
+Summary
+-------
+
+hybris-mobian runs on [halium](https://halium.org). If your device is
+supported by halium-9.0, chances are that hybris-mobian would work
+on it.
+
+If your device has shipped with Android 8.1 or 9, it probably is
+GSI (Generic System Image) capable, and such it's possible to use
+an already available, generic Android System Image with Halium patches
+applied.
+
+If your device doesn't support GSI, you'll also need to compile a patched
+system image. This is beyond the scope of this document.
+
+On Halium, the Android kernel is built via the standard Android toolchain.  
+While this makes sense, on GSI-capable devices this can be a waste of time
+since often only kernel changes are required.
+
+Thus, hybris-mobian uses a different approach to compile kernels - the
+upside is that you get packaging for free so that kernels can be upgraded
+over-the-air via APT, if you wish so.
+
+Note that this guide assumes that you're going to cross-compile an arm64
+Android kernel on an x86_64 (amd64) machine using the Android-supplied
+precompiled toolchain that's available in the hybris-mobian repositories.  
+It's trivial to disable cross-compiling and compiling using the standard
+Debian toolchain.
+
+Using this method you can also compile and package mainline kernels.
+
+An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/hybris-mobian/linux-android-fxtec-pro1/tree/feature/bullseye/initial-packaging/debian).
+
+Prerequisites
+-------------
+
+* Device kernel sources
+* An Halium-compilant kernel defconfig
+* Docker
+
+The standard [Halium kernel compilation guide](http://docs.halium.org/en/latest/porting/build-sources.html#modify-the-kernel-configuration)
+still applies. Please go through that paragraph and modify the kernel defconfig
+as suggeested.
+
+Package bring-up
+----------------
+
+Assuming your kernel sources are located in `~/hybris-mobian/kernel/vendor/device`,
+you should create a new branch to house the Debian packaging.
+
+We're also assuming that you want the resulting packages in `~/hybris-mobian/packages`.
+
+hybris-mobian tooling expects the branch to be named after the Debian
+codename, such as `bullseye`
+
+	(host)$ KERNEL_DIR="$HOME/hybris-mobian/kernel/vendor/device"
+	(host)$ PACKAGES_DIR="$HOME/hybris-mobian/packages"
+	(host)$ mkdir -p $PACKAGES_DIR
+	(host)$ cd $KERNEL_DIR
+	(host)$ git checkout -b bullseye
+
+Now it's time to fire up the Docker container.
+
+	(host)$ docker run -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/hybrismobian/build-essential:bullseye-amd64 bash
+
+Inside the Docker container, install the `linux-packaging-snippets`, that
+provides the example `kernel-info.mk` file.
+
+	(docker)# apt-get install linux-packaging-snippets
+
+And create the skeleton packaging:
+
+	(docker)# cd /buildd/sources
+	(docker)# mkdir -p debian/source
+	(docker)# cp -v /usr/share/linux-packaging-snippets/kernel-info.mk.example debian/kernel-info.mk
+	(docker)# echo 13 > debian/compat
+	(docker)# echo "3.0 (native)" > debian/source/format
+	(docker)# cat > debian/rules <<EOF
+	#!/usr/bin/make -f
+	
+	include /usr/share/linux-packaging-snippets/kernel-snippet.mk
+	
+	%:
+		dh $@
+	EOF
+	(docker)# chmod +x debian/rules
+
+Now edit `debian/kernel-info.mk` to match your kernel settings.
+
+Most of the defaults are enough for building Android kernels with the Pie
+toolchain, so you'll probably need to change device-specific settings (such
+as vendor, name, cmdline, defconfig and the various offsets).
+
+You can find offsets by looking at the Android device tree, or by inspecting
+an already built `boot.img`.
+
+Compiling
+---------
+
+Now that `kernel-info.mk` has been modified, the only thing that remains
+is to actually compile the kernel.
+
+First of all, (re)create the `debian/control` file:
+
+	(docker)# rm -f debian/control
+	(docker)# debian/rules debian/control
+	
+Now that everything is in place, you can start a build with `releng-build-package`:
+
+	(docker)# RELENG_HOST_ARCH="arm64" releng-build-package
+	
+The `RELENG_HOST_ARCH` variable is required when cross-building.
+
+If everything goes well, you'll find the resulting packages in `$PACKAGES_DIR`.
+
+Obtaining the boot image
+------------------------
+
+The boot image is shipped into the `linux-bootimage-VERSION-VENDOR-DEVICE`
+package.
+
+You can pick up the boot.img by extracting the package with `dpkg-deb` or
+by picking up directly from the compiled artifacts (`out/KERNEL_OBJ/boot.img`).
+
+The kernel image already embeds the generic Halium initramfs.
+
+Committing changes
+------------------
+
+When you're happy with the kernel, be sure to commit the following files in git:
+
+* debian/source/
+* debian/control
+* debian/rules
+* debian/compat
+* debian/kernel-info.mk
+
+...and then push your `bullseye` branch for others to enjoy.
