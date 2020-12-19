@@ -113,6 +113,52 @@ as vendor, name, cmdline, defconfig and the various offsets).
 You can find offsets by looking at the Android device tree, or by inspecting
 an already built `boot.img`.
 
+### Enabling automatic boot partition flashing
+
+Installing the built packages means that the kernel and its modules are
+put in place - but the user should still flash it to their boot partition.
+
+If you wish to enable automatic flashing (via [flash-bootimage](https://github.com/hybris-mobian/flash-bootimage)),
+you can do so by setting `FLASH_ENABLED` to 1 (which is the default).
+
+If your device doesn't support A/B updates, be sure to set `FLASH_IS_LEGACY_DEVICE`
+to 1.
+
+Note that you need to specify some device info so that `flash-bootimage`
+can cross-check when running on-device:
+
+* `FLASH_INFO_MANUFACTURER`: the value of the `ro.product.vendor.manufacturer`
+Android property. On a running hybris-mobian system, you can obtain it with
+
+```
+sudo android_getprop ro.product.vendor.manufacturer
+```
+
+* `FLASH_INFO_MODEL`: the value of the `ro.product.vendor.model`
+Android property. On a running hybris-mobian system, you can obtain it with
+
+```
+sudo android_getprop ro.product.vendor.model
+```
+
+* `FLASH_INFO_CPU`: a relevant bit of info from `/proc/cpuinfo`.
+
+If `FLASH_INFO_MANUFACTURER` or `FLASH_INFO_MODEL` are not defined (they both
+are required for checking against the Android properties), `flash-bootimage`
+will check for `FLASH_INFO_CPU`.
+
+If no device-specific information has been specified, the kernel upgrade
+will fail.
+
+An example for the F(x)tec Pro1:
+
+```
+FLASH_ENABLED = 1
+FLASH_INFO_MANUFACTURER = Fxtec
+FLASH_INFO_MODEL = QX1000
+FLASH_INFO_CPU = Qualcomm Technologies, Inc MSM8998
+```
+
 Compiling
 ---------
 
