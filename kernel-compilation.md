@@ -2,7 +2,7 @@ Kernel compilation
 ==================
 
 The stock Android kernel is unfortunately not enough to be able to run
-hybris-mobian.
+Droidian.
 
 The good news is that, on GSI-capable devices, often only kernel changes
 are necessary.
@@ -20,8 +20,8 @@ Table of contents
 Summary
 -------
 
-hybris-mobian runs on [halium](https://halium.org). If your device is
-supported by halium-9.0, chances are that hybris-mobian would work
+Droidian runs on [halium](https://halium.org). If your device is
+supported by halium-9.0, chances are that Droidian would work
 on it.
 
 If your device has shipped with Android 8.1 or 9, it probably is
@@ -36,19 +36,19 @@ On Halium, the Android kernel is built via the standard Android toolchain.
 While this makes sense, on GSI-capable devices this can be a waste of time
 since often only kernel changes are required.
 
-Thus, hybris-mobian uses a different approach to compile kernels - the
+Thus, Droidian uses a different approach to compile kernels - the
 upside is that you get packaging for free so that kernels can be upgraded
 over-the-air via APT, if you wish so.
 
 Note that this guide assumes that you're going to cross-compile an arm64
 Android kernel on an x86_64 (amd64) machine using the Android-supplied
-precompiled toolchain that's available in the hybris-mobian repositories.  
+precompiled toolchain that's available in the Droidian repositories.  
 It's trivial to disable cross-compiling and compiling using the standard
 Debian toolchain.
 
 Using this method you can also compile and package mainline kernels.
 
-An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/hybris-mobian/linux-android-fxtec-pro1/tree/feature/bullseye/initial-packaging/debian).
+An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian/linux-android-fxtec-pro1/tree/feature/bullseye/initial-packaging/debian).
 
 Prerequisites
 -------------
@@ -64,23 +64,23 @@ as suggeested.
 Package bring-up
 ----------------
 
-Assuming your kernel sources are located in `~/hybris-mobian/kernel/vendor/device`,
+Assuming your kernel sources are located in `~/droidian/kernel/vendor/device`,
 you should create a new branch to house the Debian packaging.
 
-We're also assuming that you want the resulting packages in `~/hybris-mobian/packages`.
+We're also assuming that you want the resulting packages in `~/droidian/packages`.
 
-hybris-mobian tooling expects the branch to be named after the Debian
+Droidian tooling expects the branch to be named after the Debian
 codename, such as `bullseye`
 
-	(host)$ KERNEL_DIR="$HOME/hybris-mobian/kernel/vendor/device"
-	(host)$ PACKAGES_DIR="$HOME/hybris-mobian/packages"
+	(host)$ KERNEL_DIR="$HOME/droidian/kernel/vendor/device"
+	(host)$ PACKAGES_DIR="$HOME/droidian/packages"
 	(host)$ mkdir -p $PACKAGES_DIR
 	(host)$ cd $KERNEL_DIR
 	(host)$ git checkout -b bullseye
 
 Now it's time to fire up the Docker container.
 
-	(host)$ docker run -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/hybrismobian/build-essential:bullseye-amd64 bash
+	(host)$ docker run -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:bullseye-amd64 bash
 
 Inside the Docker container, install the `linux-packaging-snippets`, that
 provides the example `kernel-info.mk` file.
@@ -118,7 +118,7 @@ an already built `boot.img`.
 Installing the built packages means that the kernel and its modules are
 put in place - but the user should still flash it to their boot partition.
 
-If you wish to enable automatic flashing (via [flash-bootimage](https://github.com/hybris-mobian/flash-bootimage)),
+If you wish to enable automatic flashing (via [flash-bootimage](https://github.com/droidian/flash-bootimage)),
 you can do so by setting `FLASH_ENABLED` to 1 (which is the default).
 
 If your device doesn't support A/B updates, be sure to set `FLASH_IS_LEGACY_DEVICE`
@@ -128,14 +128,14 @@ Note that you need to specify some device info so that `flash-bootimage`
 can cross-check when running on-device:
 
 * `FLASH_INFO_MANUFACTURER`: the value of the `ro.product.vendor.manufacturer`
-Android property. On a running hybris-mobian system, you can obtain it with
+Android property. On a running Droidian system, you can obtain it with
 
 ```
 sudo android_getprop ro.product.vendor.manufacturer
 ```
 
 * `FLASH_INFO_MODEL`: the value of the `ro.product.vendor.model`
-Android property. On a running hybris-mobian system, you can obtain it with
+Android property. On a running Droidian system, you can obtain it with
 
 ```
 sudo android_getprop ro.product.vendor.model
