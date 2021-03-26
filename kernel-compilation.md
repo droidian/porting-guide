@@ -100,7 +100,7 @@ And create the skeleton packaging:
 	include /usr/share/linux-packaging-snippets/kernel-snippet.mk
 	
 	%:
-		dh $@
+		dh \$@
 	EOF
 	(docker)# chmod +x debian/rules
 
