@@ -18,4 +18,4 @@ Contents
 * Porting guide
   * [Kernel compilation](./kernel-compilation.md)
   * Image creation
-  * Tips to aid debugging
+  * [Tips to aid debugging](./debugging-tips.md)
