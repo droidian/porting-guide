@@ -79,7 +79,7 @@ harder to debug.
 # From a recovery shell
 mkdir /tmp/mpoint
 mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint
+chroot /tmp/mpoint /bin/bash
 export PATH=/usr/bin:/usr/sbin
 systemctl mask systemd-journald
 ```
