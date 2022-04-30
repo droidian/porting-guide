@@ -107,7 +107,7 @@ can check the systemd journal:
 # From a recovery shell
 mkdir /tmp/mpoint
 mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint
+chroot /tmp/mpoint /bin/bash
 export PATH=/usr/bin:/usr/sbin
 journalctl --no-pager
 ```
@@ -142,7 +142,7 @@ You might try masking those two services via a recovery shell:
 # From a recovery shell
 mkdir /tmp/mpoint
 mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint
+chroot /tmp/mpoint /bin/bash
 export PATH=/usr/bin:/usr/sbin
 systemctl mask systemd-resolved
 systemctl mask systemd-timesyncd
