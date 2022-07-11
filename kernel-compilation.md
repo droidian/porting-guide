@@ -80,7 +80,7 @@ codename, such as `bookworm`
 
 Now it's time to fire up the Docker container.
 
-	(host)$ docker run -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:bookworm-amd64 bash
+	(host)$ docker run --rm -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:bookworm-amd64 bash
 
 Inside the Docker container, install the `linux-packaging-snippets`, that
 provides the example `kernel-info.mk` file.
