@@ -48,7 +48,7 @@ Debian toolchain.
 
 Using this method you can also compile and package mainline kernels.
 
-An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian/linux-android-fxtec-pro1/tree/feature/bullseye/initial-packaging/debian).
+An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian/linux-android-fxtec-pro1/tree/feature/bookworm/initial-packaging/debian).
 
 Prerequisites
 -------------
@@ -70,17 +70,17 @@ you should create a new branch to house the Debian packaging.
 We're also assuming that you want the resulting packages in `~/droidian/packages`.
 
 Droidian tooling expects the branch to be named after the Debian
-codename, such as `bullseye`
+codename, such as `bookworm`
 
 	(host)$ KERNEL_DIR="$HOME/droidian/kernel/vendor/device"
 	(host)$ PACKAGES_DIR="$HOME/droidian/packages"
 	(host)$ mkdir -p $PACKAGES_DIR
 	(host)$ cd $KERNEL_DIR
-	(host)$ git checkout -b bullseye
+	(host)$ git checkout -b bookworm
 
 Now it's time to fire up the Docker container.
 
-	(host)$ docker run -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:bullseye-amd64 bash
+	(host)$ docker run -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:bookworm-amd64 bash
 
 Inside the Docker container, install the `linux-packaging-snippets`, that
 provides the example `kernel-info.mk` file.
@@ -200,4 +200,4 @@ When you're happy with the kernel, be sure to commit the following files in git:
 * debian/compat
 * debian/kernel-info.mk
 
-...and then push your `bullseye` branch for others to enjoy.
+...and then push your `bookworm` branch for others to enjoy.
