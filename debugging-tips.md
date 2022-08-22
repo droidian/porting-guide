@@ -129,8 +129,7 @@ Ensure kernel namespaces features are enabled (like `CONFIG_NAMESPACES`, `CONFIG
 `CONFIG_PID_NS`, `CONFIG_NET_NS`...).
 
 You might also check this diffconfig snippet for the official Sony Xperia 5 adaptation:
-https://github.com/droidian-devices/android_kernel_sony_kumano/blob/droidian/55.2.A.4.xxx/droidian/halium.config
-
+https://github.com/droidian-devices/android_kernel_sony_kumano/blob/droidian/55.2.A.4.xxx/droidian/kumano.config
 ### (generic rootfs only) Mask resolved and timesyncd
 
 Some kernels have trouble with the kernel namespaces systemd creates to run some
