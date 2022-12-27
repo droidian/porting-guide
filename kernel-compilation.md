@@ -48,7 +48,7 @@ Debian toolchain.
 
 Using this method you can also compile and package mainline kernels.
 
-An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian/linux-android-fxtec-pro1/tree/feature/bookworm/initial-packaging/debian).
+An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian-devices/linux-android-fxtec-pro1/tree/bookworm/debian).
 
 Prerequisites
 -------------
