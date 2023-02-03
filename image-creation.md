@@ -102,9 +102,10 @@ Then apply the hybris patches for the build system
 `hybris-patches/apply-patches.sh --mb`
 
 Now all we have to do to have a ready to build environment is to set the set up the environment variables
-
-`source build/envsetup.sh`
-`breakfast CODENAME`
+```
+source build/envsetup.sh
+breakfast CODENAME
+```
 
 replace CODENAME with your codename
 
@@ -201,7 +202,7 @@ Obtaining images
 If everything went smoothly without any errors, you should be able to find all the images in `out/target/product/CODENAME` where CODENAME is your codename.
 You should see `system.img` as well as `halium-boot.img`.
 
-halium-boot.img should be flashed to the boot partition of the device.
+`halium-boot.img` should be flashed to the boot partition of the device.
 
 rootfs modification
 ------------------
@@ -224,4 +225,6 @@ And move the image to `/var/lib/lxc/android/`
 
 `sudo cp system-raw.img /var/lib/lxc/android/android-rootfs.img`
 
-If device is not booted up yet, rootfs can be modified from recovery by mounting it (`/data/rootfs.img`) and copying the image to `MOUNTPOINT/var/lib/lxc/android/android-rootfs.img`
+If device is not booted up yet, rootfs can be modified from recovery by mounting it (`/data/rootfs.img`) and copying the image to
+
+`MOUNTPOINT/var/lib/lxc/android/android-rootfs.img`

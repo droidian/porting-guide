@@ -108,7 +108,7 @@ by unpacking an already built `boot.img` using unpackbootimg all the offsets can
 Kernel info options
 -------------------
 
-`KERNEL_BASE_VERSION` is the kernel version which can be viewed in Makefile at the root of your kernel source.
+* `KERNEL_BASE_VERSION` is the kernel version which can be viewed in Makefile at the root of your kernel source.
 
 As an example
 
@@ -120,43 +120,43 @@ SUBLEVEL = 221
 
 will be 4.14.221
 
-`KERNEL_DEFCONFIG` is the defconfig filename found at arch/YOURARCH/configs
+* `KERNEL_DEFCONFIG` is the defconfig filename found at arch/YOURARCH/configs
 
-`KERNEL_IMAGE_WITH_DTB` determines whether or not to include a dtb file in the kernel. if this option is set `KERNEL_IMAGE_DTB` also needs to be set. if not an attempt to find it will occur.
+* `KERNEL_IMAGE_WITH_DTB` determines whether or not to include a dtb file in the kernel. if this option is set `KERNEL_IMAGE_DTB` also needs to be set. if not an attempt to find it will occur.
 
-`KERNEL_IMAGE_DTB` is the path to the dtb file which can be found in arch/YOURARCH/boot/dts/SOC/
+* `KERNEL_IMAGE_DTB` is the path to the dtb file which can be found in arch/YOURARCH/boot/dts/SOC/
 
-`KERNEL_IMAGE_WITH_DTB_OVERLAY` determines whether or not to build a dtbo file. if this option is set `KERNEL_IMAGE_DTB_OVERLAY` also needs to be set. if not an attempt to find it will occur.
+* `KERNEL_IMAGE_WITH_DTB_OVERLAY` determines whether or not to build a dtbo file. if this option is set `KERNEL_IMAGE_DTB_OVERLAY` also needs to be set. if not an attempt to find it will occur.
 
-`KERNEL_IMAGE_DTB_OVERLAY` is the path to the dtbo file which can be found in arch/YOURARCH/boot/dts/SOC/
+* `KERNEL_IMAGE_DTB_OVERLAY` is the path to the dtbo file which can be found in arch/YOURARCH/boot/dts/SOC/
 
 All these values can be viewed by extracting a boot image with unpackbootimg
 
-`KERNEL_BOOTIMAGE_CMDLINE` corresponds to "command line args" or "BOARD_KERNEL_CMDLINE" `console=tty0` and `droidian.lvm.prefer` should be appended to the cmdline. Make sure to remove any `systempart` entry from cmdline.
+* `KERNEL_BOOTIMAGE_CMDLINE` corresponds to "command line args" or "BOARD_KERNEL_CMDLINE" `console=tty0` and `droidian.lvm.prefer` should be appended to the cmdline. Make sure to remove any `systempart` entry from cmdline.
 
-`KERNEL_BOOTIMAGE_PAGE_SIZE` corresponds to "page size" or "BOARD_PAGE_SIZE"
+* `KERNEL_BOOTIMAGE_PAGE_SIZE` corresponds to "page size" or "BOARD_PAGE_SIZE"
 
-`KERNEL_BOOTIMAGE_BASE_OFFSET` corresponds to "base" or "BOARD_KERNEL_BASE"
+* `KERNEL_BOOTIMAGE_BASE_OFFSET` corresponds to "base" or "BOARD_KERNEL_BASE"
 
-`KERNEL_BOOTIMAGE_KERNEL_OFFSET` corresponds to "kernel load address" or "BOARD_KERNEL_OFFSET"
+* `KERNEL_BOOTIMAGE_KERNEL_OFFSET` corresponds to "kernel load address" or "BOARD_KERNEL_OFFSET"
 
-`KERNEL_BOOTIMAGE_INITRAMFS_OFFSET` corresponds to "ramdisk load address" or "BOARD_RAMDISK_OFFSET"
+* `KERNEL_BOOTIMAGE_INITRAMFS_OFFSET` corresponds to "ramdisk load address" or "BOARD_RAMDISK_OFFSET"
 
-`KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET` corresponds to "second bootloader load address" or "BOARD_SECOND_OFFSET"
+* `KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET` corresponds to "second bootloader load address" or "BOARD_SECOND_OFFSET"
 
-`KERNEL_BOOTIMAGE_TAGS_OFFSET` corresponds to "kernel tags load address" or "BOARD_TAGS_OFFSET"
+* `KERNEL_BOOTIMAGE_TAGS_OFFSET` corresponds to "kernel tags load address" or "BOARD_TAGS_OFFSET"
 
-`KERNEL_BOOTIMAGE_DTB_OFFSET` corresponds to "dtb address" or "BOARD_DTB_OFFSET"
+* `KERNEL_BOOTIMAGE_DTB_OFFSET` corresponds to "dtb address" or "BOARD_DTB_OFFSET"
 
-although this option is only required for kernel header version 2. it can be commented otherwise.
+Although this option is only required for kernel header version 2. it can be commented otherwise.
 
-`KERNEL_BOOTIMAGE_VERSION` correlates to the kernel header version. Devices launched with Android 8 and lower are 0, Android 9 is 1, Android 10 is 2 and Android 11 is 2 and GKI devices are 3.
+* `KERNEL_BOOTIMAGE_VERSION` correlates to the kernel header version. Devices launched with Android 8 and lower are 0, Android 9 is 1, Android 10 is 2 and Android 11 is 2 and GKI devices are 3.
 
-For Samsung devices `DEVICE_VBMETA_IS_SAMSUNG` must be set to 1
+* For Samsung devices `DEVICE_VBMETA_IS_SAMSUNG` must be set to 1.
 
-`BUILD_CC` for most devices launched with Android 9 and above is clang but if your kernel fails to build with clang you might try changing the value to aarch64-linux-android-gcc-4.9 to build with gcc.
+* `BUILD_CC` for most devices launched with Android 9 and above is clang but if your kernel fails to build with clang you might try changing the value to aarch64-linux-android-gcc-4.9 to build with gcc.
 
-`DEB_BUILD_FOR` and `KERNEL_ARCH` should be changed according to device architecture.
+* `DEB_BUILD_FOR` and `KERNEL_ARCH` should be changed according to device architecture.
 
 ### Enabling automatic boot partition flashing
 
