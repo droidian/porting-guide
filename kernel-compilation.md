@@ -52,7 +52,7 @@ Prerequisites
 * A Halium-compliant kernel defconfig
 * Docker
 
-If you do not have a Halium-compliant kernel yet you can try modifying the defconfig as suggested in [Kernel adaptation](#kernel-adaptation) later in the guide.
+If you do not have a Halium-compliant kernel yet you should modify your kernel's configuration as suggested in [Kernel adaptation](#kernel-adaptation) later in the guide.
 
 Package bring-up
 ----------------
@@ -62,8 +62,7 @@ you should create a new branch to house the Debian packaging.
 
 We're also assuming that you want the resulting packages in `~/droidian/packages`.
 
-Droidian tooling expects the branch to be named after the Debian
-codename, such as `bookworm`
+Droidian tooling expects the kernel source to have a working git directory structure (be a kernel cloned from a git repository) and the branch to be named after the Debian codename, such as `bookworm`.
 
 	(host)$ KERNEL_DIR="$HOME/droidian/kernel/vendor/device"
 	(host)$ PACKAGES_DIR="$HOME/droidian/packages"
@@ -107,6 +106,16 @@ by unpacking an already built `boot.img` using unpackbootimg all the offsets can
 
 Kernel info options
 -------------------
+
+unpackbootimg syntax goes as follows
+
+`unpackbootimg --boot_img boot.img`
+
+or for the AOSP version of unpackbootimg
+
+`unpackbootimg -i boot.img`
+
+### kernel-info.mk entries
 
 * `KERNEL_BASE_VERSION` is the kernel version which can be viewed in Makefile at the root of your kernel source.
 
@@ -154,7 +163,7 @@ Although this option is only required for kernel header version 2. it can be com
 
 * For Samsung devices `DEVICE_VBMETA_IS_SAMSUNG` must be set to 1.
 
-* `BUILD_CC` for most devices launched with Android 9 and above is clang but if your kernel fails to build with clang you might try changing the value to aarch64-linux-android-gcc-4.9 to build with gcc.
+* `BUILD_CC` for most devices launched with Android 9 and above is clang but if your kernel fails to build with `clang` you might try changing the value to `aarch64-linux-android-gcc-4.9` to build with gcc.
 
 * `DEB_BUILD_FOR` and `KERNEL_ARCH` should be changed according to device architecture.
 
@@ -231,6 +240,10 @@ CONFIG_BT_HCIVHCI
 
 You can use menuconfig to make sure all the options are enabled with all their dependencies.
 
+`mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig`
+
+After modifying your defconfig, copy `out/KERNEL_OBJ/.config` to `arch/YOURARCH/configs/your_defconfig`.
+
 If LXC fails to start you can use `lxc-checkconfig` after device first booted to check for other options that might be needed.
 
 Compiling
@@ -255,8 +268,7 @@ If everything goes well, you'll find the resulting packages in `$PACKAGES_DIR`.
 Obtaining the boot image
 ------------------------
 
-The boot image is shipped into the `linux-bootimage-VERSION-VENDOR-DEVICE`
-package.
+The boot image is shipped into the `linux-bootimage-VERSION-VENDOR-DEVICE` package.
 
 You can pick up the boot.img by extracting the package with `dpkg-deb` or
 by picking up directly from the compiled artifacts (`out/KERNEL_OBJ/boot.img`).
@@ -266,7 +278,7 @@ The kernel image already embeds the generic Halium initramfs.
 Committing changes
 ------------------
 
-When you're happy with the kernel, be sure to commit the following files in git:
+When you're happy with the kernel, be sure to commit your changes as well as the debian packaging to a git repository:
 
 * debian/source/
 * debian/control

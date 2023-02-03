@@ -20,3 +20,20 @@ Contents
   * [Kernel compilation](./kernel-compilation.md)
   * [Image creation](./image-creation.md)
   * [Tips to aid debugging](./debugging-tips.md)
+
+Getting community help
+----------------------
+
+### Search the Droidian group
+
+The [Droidian telegram group](https://t.me/DroidianLinux/) (also bridged to [Matrix](https://matrix.to/#/%23droidian:matrix.org)) is a great resource.
+It's quite possible that your issue has been already discussed and resolved.
+
+Please use the search function rather than ask straight away. Discussing the same things at length
+is boring especially when it has been already done in the past.
+
+If you can't find an answer for your issue, try to be the more detailed possible (include a pastebin of your
+logs). If someone is available it will try to help you.
+
+Note that no one owes you an answer, avoid pinging people repeatedly. Avoid posting screenshots of
+text messages, use a pastebin service instead.

@@ -62,29 +62,55 @@ A manifest file is a file in which the location to all your sources on the inter
 Manifest files are stored in halium/devices/manifests and the file name has the format `vendor_device.xml` in which device is the codename of your device
 As an example for Xiaomi Redmi Note 7 it will be `xiaomi_lavender.xml`
 
-Your manifest file should have this and everything else goes in the middle
+Your manifest file should have this as the starter code and everything should be appended
 
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
+    <remote name="github" fetch="https://github.com/" />
 
+    <remove-project name="halium/halium-boot" />
+    <project path="halium/halium-boot" name="droidian-hammerhead/halium-boot" remote="github" />    
+    
 </manifest>
 ```
 
-Remotes can be created
+### Remotes
+
+Remotes can be created to mark which git instance each project should be cloned from. as an example
+
 `<remote name="github" fetch="https://github.com/" revision="halium-9.0" />`
 
 This means that each time github is used as the remote repository will be searched for in github.com and the branch will always be halium-9.0 (revision can be removed from remote and can be moved to project entries)
 
-project entries indicate the repository to clone into
+The only condition for a remote is the fetch value must be a git instance.
+
+## Project
+
+Project entries indicate the repository to clone into. as an example
 
 `<project path="device/lge/hammerhead" name="droidian-hammerhead/android_kernel_lge_hammerhead" remote="github" />`
 
 This line indicates that the build script should look at the remote github (which is https://github.com/) and clone into the repository `droidian-hammerhead/android_kernel_lge_hammerhead` (https://github.com/droidian-hammerhead/android_kernel_lge_hammerhead) and store it at device/lge/hammerhead from the root of the build system.
 
-Because we have revision="halium-9.0" it will also make sure to clone into the halium-9.0 branch. revision can also be added to the project line instead of the remote if not all repositories have the same branch name.
+Because we have revision="halium-9.0" it will also make sure to clone into the halium-9.0 branch.
+revision can also be added to the project line instead of the remote if not all repositories have the same branch name.
+
+`<project path="device/lge/hammerhead" name="droidian-hammerhead/android_kernel_lge_hammerhead" remote="github" revision="halium-9.0" />`
 
 After adding all the entries for your device (kernel, device, vendor and possibly other entries such as slsi for Samsung devices), you can move on to the next step.
+
+### Remove project
+
+remove-project entires are used to remove a directory or file in the build system. as an example
+
+`<remove-project name="hybris-patches" />`
+
+This line removes hybris-patches directory. It can then be replaced by another project
+
+`<project path="hybris-patches" name="Halium/hybris-patches" revision="halium-9.0-arm32" />`
+
+On this example it is replaced by an arm32 version of hybris patches needed for devices with a 32 bit CPU as the default hybris-patches is arm64.
 
 Initializing the build environment
 ----------------------------------
@@ -204,6 +230,8 @@ You should see `system.img` as well as `halium-boot.img`.
 
 `halium-boot.img` should be flashed to the boot partition of the device.
 
+The kernel image already embeds the generic Halium initramfs.
+
 rootfs modification
 ------------------
 
@@ -225,6 +253,14 @@ And move the image to `/var/lib/lxc/android/`
 
 `sudo cp system-raw.img /var/lib/lxc/android/android-rootfs.img`
 
-If device is not booted up yet, rootfs can be modified from recovery by mounting it (`/data/rootfs.img`) and copying the image to
+If device is not booted up yet, rootfs can be modified from recovery by mounting it (`/data/rootfs.img`) and copying the image
 
-`MOUNTPOINT/var/lib/lxc/android/android-rootfs.img`
+`adb push system-raw.img /data/`
+
+Now from recovery shell
+
+```
+mkdir /tmp/mpoint
+mount /data/rootfs.img /tmp/mpoint
+cp /data/system-raw.img /tmp/mpoint/var/lib/lxc/android/android-rootfs.img
+```
