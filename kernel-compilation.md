@@ -1,12 +1,9 @@
-
 Kernel compilation
 ==================
 
-The stock Android kernel is unfortunately not enough to be able to run
-Droidian.
+The stock Android kernel is unfortunately not enough to be able to run Droidian.
 
-The good news is that, on GSI-capable devices, often only kernel changes
-are necessary.
+The good news is that, on GSI-capable devices, often only kernel changes are necessary.
 
 Table of contents
 -----------------
@@ -14,6 +11,8 @@ Table of contents
 * [Summary](#summary)
 * [Prerequisites](#prerequisites)
 * [Package bring-up](#package-bring-up)
+* [Kernel info options](#kernel-info-options)
+* [Kernel adaptation](#kernel-adaptation)
 * [Compiling](#compiling)
 * [Obtaining the boot image](#obtaining-the-boot-image)
 * [Committing changes](#committing-changes)
@@ -21,29 +20,24 @@ Table of contents
 Summary
 -------
 
-Droidian runs on [halium](https://halium.org). If your device is
-supported by halium-9.0, chances are that Droidian would work
-on it.
+Droidian runs on [halium](https://halium.org).
+If your device is launched with Android 9 or above it is possible to port Droidian to it.
+If it already has a halium-compliant kernel of halium-9.0 and above chances are that Droidian will work without much modification.
 
-If your device has shipped with Android 8.1 or 9, it probably is
-GSI (Generic System Image) capable, and such it's possible to use
-an already available, generic Android System Image with Halium patches
-applied.
+If your device has shipped with Android 8.1 or 9, it probably is GSI (Generic System Image) capable, and such it's possible to use an already available, generic Android System Image with Halium patches applied.
+This will reduce the amount of work the porter has to do significantly.
 
-If your device doesn't support GSI, you'll also need to compile a patched
-system image. This is beyond the scope of this document.
+If your device doesn't support GSI, you'll also need to compile a patched system image.
+The documentation for image creation can be found in [this guide](./image-creation.md)
 
-On Halium, the Android kernel is built via the standard Android toolchain.  
-While this makes sense, on GSI-capable devices this can be a waste of time
-since often only kernel changes are required.
+On Halium, the Android kernel is built via the standard Android toolchain.
+While this makes sense, on GSI-capable devices this can be a waste of time since often only kernel changes are required.
 
-Thus, Droidian uses a different approach to compile kernels - the
-upside is that you get packaging for free so that kernels can be upgraded
-over-the-air via APT, if you wish so.
+Thus, Droidian uses a different approach to compile kernels - the upside is that you get packaging for free so that kernels can be upgraded over-the-air via APT, if you wish so.
 
 Note that this guide assumes that you're going to cross-compile an arm64
 Android kernel on an x86_64 (amd64) machine using the Android-supplied
-precompiled toolchain that's available in the Droidian repositories.  
+precompiled toolchain that's available in the Droidian repositories.
 It's trivial to disable cross-compiling and compiling using the standard
 Debian toolchain.
 
@@ -58,7 +52,7 @@ Prerequisites
 * A Halium-compliant kernel defconfig
 * Docker
 
-If you do not have a Halium-compliant kernel yet you can try modifying the defconfig as suggested in [Kernel adaptation](#kernel-adaptation)
+If you do not have a Halium-compliant kernel yet you can try modifying the defconfig as suggested in [Kernel adaptation](#kernel-adaptation) later in the guide.
 
 Package bring-up
 ----------------
@@ -114,54 +108,55 @@ by unpacking an already built `boot.img` using unpackbootimg all the offsets can
 Kernel info options
 -------------------
 
-```KERNEL_BASE_VERSION``` is the kernel version which can be viewed in Makefile at the root of your kernel source.
-as an example
+`KERNEL_BASE_VERSION` is the kernel version which can be viewed in Makefile at the root of your kernel source.
+
+As an example
 
 ```
 VERSION = 4
 PATCHLEVEL = 14
 SUBLEVEL = 221
 ```
+
 will be 4.14.221
 
-```KERNEL_DEFCONFIG``` is the defconfig filename found at arch/YOURARCH/configs
+`KERNEL_DEFCONFIG` is the defconfig filename found at arch/YOURARCH/configs
 
-```KERNEL_IMAGE_WITH_DTB``` determines whether or not to include a dtb file in the kernel. if this option is set ```KERNEL_IMAGE_DTB``` also needs to be set. if not an attempt to find it will occur.
+`KERNEL_IMAGE_WITH_DTB` determines whether or not to include a dtb file in the kernel. if this option is set `KERNEL_IMAGE_DTB` also needs to be set. if not an attempt to find it will occur.
 
-```KERNEL_IMAGE_DTB``` is the path to the dtb file which can be found in arch/YOURARCH/boot/dts/SOC/
+`KERNEL_IMAGE_DTB` is the path to the dtb file which can be found in arch/YOURARCH/boot/dts/SOC/
 
-```KERNEL_IMAGE_WITH_DTB_OVERLAY``` determines whether or not to build a dtbo file. if this option is set ```KERNEL_IMAGE_DTB_OVERLAY``` also needs to be set. if not an attempt to find it will occur.
+`KERNEL_IMAGE_WITH_DTB_OVERLAY` determines whether or not to build a dtbo file. if this option is set `KERNEL_IMAGE_DTB_OVERLAY` also needs to be set. if not an attempt to find it will occur.
 
-```KERNEL_IMAGE_DTB_OVERLAY``` is the path to the dtbo file which can be found in arch/YOURARCH/boot/dts/SOC/
+`KERNEL_IMAGE_DTB_OVERLAY` is the path to the dtbo file which can be found in arch/YOURARCH/boot/dts/SOC/
 
 All these values can be viewed by extracting a boot image with unpackbootimg
 
-```KERNEL_BOOTIMAGE_CMDLINE``` corresponds to "command line args" or "BOARD_KERNEL_CMDLINE" ```console=tty0``` and ```droidian.lvm.prefer``` should be appended to the cmdline.
+`KERNEL_BOOTIMAGE_CMDLINE` corresponds to "command line args" or "BOARD_KERNEL_CMDLINE" `console=tty0` and `droidian.lvm.prefer` should be appended to the cmdline. Make sure to remove any `systempart` entry from cmdline.
 
-```KERNEL_BOOTIMAGE_PAGE_SIZE``` corresponds to "page size" or "BOARD_PAGE_SIZE"
+`KERNEL_BOOTIMAGE_PAGE_SIZE` corresponds to "page size" or "BOARD_PAGE_SIZE"
 
-```KERNEL_BOOTIMAGE_BASE_OFFSET``` corresponds to "base" or "BOARD_KERNEL_BASE"
+`KERNEL_BOOTIMAGE_BASE_OFFSET` corresponds to "base" or "BOARD_KERNEL_BASE"
 
-```KERNEL_BOOTIMAGE_KERNEL_OFFSET``` corresponds to "kernel load address" or "BOARD_KERNEL_OFFSET"
+`KERNEL_BOOTIMAGE_KERNEL_OFFSET` corresponds to "kernel load address" or "BOARD_KERNEL_OFFSET"
 
-```KERNEL_BOOTIMAGE_INITRAMFS_OFFSET```corresponds to "ramdisk load address" or "BOARD_RAMDISK_OFFSET"
+`KERNEL_BOOTIMAGE_INITRAMFS_OFFSET` corresponds to "ramdisk load address" or "BOARD_RAMDISK_OFFSET"
 
-```KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET``` corresponds to "second bootloader load address" or
-"BOARD_SECOND_OFFSET"
+`KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET` corresponds to "second bootloader load address" or "BOARD_SECOND_OFFSET"
 
-```KERNEL_BOOTIMAGE_TAGS_OFFSET``` corresponds to "kernel tags load address" or "BOARD_TAGS_OFFSET"
+`KERNEL_BOOTIMAGE_TAGS_OFFSET` corresponds to "kernel tags load address" or "BOARD_TAGS_OFFSET"
 
-```KERNEL_BOOTIMAGE_DTB_OFFSET``` corresponds to "dtb address" or "BOARD_DTB_OFFSET"
+`KERNEL_BOOTIMAGE_DTB_OFFSET` corresponds to "dtb address" or "BOARD_DTB_OFFSET"
 
 although this option is only required for kernel header version 2. it can be commented otherwise.
 
-```KERNEL_BOOTIMAGE_VERSION``` correlates to the kernel header version. Devices launched with Android 8 and lower are 0, Android 9 is 1, Android 10 is 2 and Android 11 is 2 and GKI devices are 3.
+`KERNEL_BOOTIMAGE_VERSION` correlates to the kernel header version. Devices launched with Android 8 and lower are 0, Android 9 is 1, Android 10 is 2 and Android 11 is 2 and GKI devices are 3.
 
-For Samsung devices ```DEVICE_VBMETA_IS_SAMSUNG``` must be set to 1
+For Samsung devices `DEVICE_VBMETA_IS_SAMSUNG` must be set to 1
 
-```BUILD_CC``` for most devices launched with Android 9 and above is clang but if your kernel fails to build with clang you might try changing the value to aarch64-linux-android-gcc-4.9 to build with gcc.
+`BUILD_CC` for most devices launched with Android 9 and above is clang but if your kernel fails to build with clang you might try changing the value to aarch64-linux-android-gcc-4.9 to build with gcc.
 
-```DEB_BUILD_FOR``` and ```KERNEL_ARCH``` should be changed according to device architecture.
+`DEB_BUILD_FOR` and `KERNEL_ARCH` should be changed according to device architecture.
 
 ### Enabling automatic boot partition flashing
 
@@ -171,25 +166,19 @@ put in place - but the user should still flash it to their boot partition.
 If you wish to enable automatic flashing (via [flash-bootimage](https://github.com/droidian/flash-bootimage)),
 you can do so by setting `FLASH_ENABLED` to 1 (which is the default).
 
-If your device doesn't support A/B updates, be sure to set `FLASH_IS_LEGACY_DEVICE`
-to 1.
+If your device doesn't support A/B updates, be sure to set `FLASH_IS_LEGACY_DEVICE` to 1.
 
-Note that you need to specify some device info so that `flash-bootimage`
-can cross-check when running on-device:
+Note that you need to specify some device info so that `flash-bootimage` can cross-check when running on-device:
 
 * `FLASH_INFO_MANUFACTURER`: the value of the `ro.product.vendor.manufacturer`
 Android property. On a running Droidian system, you can obtain it with
 
-```
-sudo android_getprop ro.product.vendor.manufacturer
-```
+`sudo android_getprop ro.product.vendor.manufacturer`
 
 * `FLASH_INFO_MODEL`: the value of the `ro.product.vendor.model`
 Android property. On a running Droidian system, you can obtain it with
 
-```
-sudo android_getprop ro.product.vendor.model
-```
+`sudo android_getprop ro.product.vendor.model`
 
 * `FLASH_INFO_CPU`: a relevant bit of info from `/proc/cpuinfo`.
 
@@ -197,8 +186,7 @@ If `FLASH_INFO_MANUFACTURER` or `FLASH_INFO_MODEL` are not defined (they both
 are required for checking against the Android properties), `flash-bootimage`
 will check for `FLASH_INFO_CPU`.
 
-If no device-specific information has been specified, the kernel upgrade
-will fail.
+If no device-specific information has been specified, the kernel upgrade will fail.
 
 An example for the F(x)tec Pro1:
 
@@ -211,7 +199,9 @@ FLASH_INFO_CPU = Qualcomm Technologies, Inc MSM8998
 
 Kernel adaptation
 -----------------
+
 As a bare minimum these options need to be enabled in your defconfig
+
 ```
 CONFIG_DEVTMPFS
 CONFIG_VT
@@ -221,7 +211,7 @@ CONFIG_DEVPTS_MULTIPLE_INSTANCES
 CONFIG_USB_CONFIGFS_RNDIS
 ```
 
-Usually CONFIG_NAMESPACES enables all the namespace options but if it did not, all these options should be added
+Usually `CONFIG_NAMESPACES` enables all the namespace options but if it did not, all these options should be added
 
 ```
 CONFIG_SYSVIPC
@@ -230,16 +220,18 @@ CONFIG_IPC_NS
 CONFIG_UTS_NS
 ```
 
-Later on for other components, other options can be enabled after the initial boot is done successfully.
+Later on for other components, various options should be enabled after the initial boot is done successfully.
 
 As an example for Bluetooth these options might be required
+
 ```
 CONFIG_BT
 CONFIG_BT_HCIVHCI
 ```
+
 You can use menuconfig to make sure all the options are enabled with all their dependencies.
 
-If LXC fails to start you can use ```lxc-checkconfig``` after device first booted to check for other options that might be needed.
+If LXC fails to start you can use `lxc-checkconfig` after device first booted to check for other options that might be needed.
 
 Compiling
 ---------
