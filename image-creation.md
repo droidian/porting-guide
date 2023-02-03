@@ -40,19 +40,19 @@ Before we start, It should be noted that the Android build system will be well o
 
 First create a directory for the Halium/Android build system
 
-`mkdir droidian && cd droidian`
+`(host)$ mkdir droidian && cd droidian`
 
 and initialize the correct manifest file for your Halium version (in this case it will he halium-9.0)
 
-`repo init -u https://github.com/Halium/android -b halium-9.0 --depth=1`
+`(host)$ repo init -u https://github.com/Halium/android -b halium-9.0 --depth=1`
 
 Now you are ready to clone into all the repositories and download the source code for the required repositories. (This will take some time)
 
-`repo sync -c`
+`(host)$ repo sync -c`
 
 If you have a fast connection you can increase the number of workers with -j
 
-`repo sync -c -j 16`
+`(host)$ repo sync -c -j 16`
 
 Writing a manifest file
 ---------------------------
@@ -119,18 +119,18 @@ After completing your manifest file you can use the setup script to set your dev
 
 Make sure to run these commands at the root of your droidian directory
 
-`halium/devices/setup CODENAME`
+`(host)$ halium/devices/setup CODENAME`
 
 replace CODENAME with your codename
 
 Then apply the hybris patches for the build system
 
-`hybris-patches/apply-patches.sh --mb`
+`(host)$ hybris-patches/apply-patches.sh --mb`
 
 Now all we have to do to have a ready to build environment is to set the set up the environment variables
 ```
-source build/envsetup.sh
-breakfast CODENAME
+(host)$ source build/envsetup.sh
+(host)$ breakfast CODENAME
 ```
 
 replace CODENAME with your codename
@@ -206,20 +206,20 @@ Compiling
 
 To build mkbootimg which is used for building the final boot image
 
-`mka mkbootimg`
+`(host)$ mka mkbootimg`
 
 To build the boot image
 
 ```
-export USE_HOST_LEX=yes
-mka halium-boot
+(host)$ export USE_HOST_LEX=yes
+(host)$ mka halium-boot
 ```
 
 And finally to build the system image
 
 ```
-mka e2fsdroid
-mka systemimage
+(host)$ mka e2fsdroid
+(host)$ mka systemimage
 ```
 
 Obtaining images
@@ -237,30 +237,30 @@ rootfs modification
 
 To test this image in Droidian, it should first be converted from a sparse image to a raw image
 
-`simg2img system.img system-raw.img`
+`(host)$ simg2img system.img system-raw.img`
 
 Now it can safely be moved to our Droidian installation.
 
 Assuming device is already booted into Droidian, scp can be used to move the image.
 
-`scp system-raw.img droidian@10.15.19.82:~/`
+`(host)$ scp system-raw.img droidian@10.15.19.82:~/`
 
 Now ssh into your device
 
-`ssh droidian@10.15.19.82`
+`(host)$ ssh droidian@10.15.19.82`
 
 And move the image to `/var/lib/lxc/android/`
 
-`sudo cp system-raw.img /var/lib/lxc/android/android-rootfs.img`
+`(device)$ sudo cp system-raw.img /var/lib/lxc/android/android-rootfs.img`
 
 If device is not booted up yet, rootfs can be modified from recovery by mounting it (`/data/rootfs.img`) and copying the image
 
-`adb push system-raw.img /data/`
+`(host)$ adb push system-raw.img /data/`
 
 Now from recovery shell
 
 ```
-mkdir /tmp/mpoint
-mount /data/rootfs.img /tmp/mpoint
-cp /data/system-raw.img /tmp/mpoint/var/lib/lxc/android/android-rootfs.img
+(recovery)$ mkdir /tmp/mpoint
+(recovery)$ mount /data/rootfs.img /tmp/mpoint
+(recovery)$ cp /data/system-raw.img /tmp/mpoint/var/lib/lxc/android/android-rootfs.img
 ```

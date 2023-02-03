@@ -109,11 +109,11 @@ Kernel info options
 
 unpackbootimg syntax goes as follows
 
-`unpackbootimg --boot_img boot.img`
+`(docker)# unpackbootimg --boot_img boot.img`
 
 or for the AOSP version of unpackbootimg
 
-`unpackbootimg -i boot.img`
+`(docker)# unpackbootimg -i boot.img`
 
 ### kernel-info.mk entries
 
