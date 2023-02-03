@@ -1,3 +1,4 @@
+
 Kernel compilation
 ==================
 
@@ -54,12 +55,10 @@ Prerequisites
 -------------
 
 * Device kernel sources
-* An Halium-compilant kernel defconfig
+* A Halium-compliant kernel defconfig
 * Docker
 
-The standard [Halium kernel compilation guide](http://docs.halium.org/en/latest/porting/build-sources.html#modify-the-kernel-configuration)
-still applies. Please go through that paragraph and modify the kernel defconfig
-as suggeested.
+If you do not have a Halium-compliant kernel yet you can try modifying the defconfig as suggested in [Kernel adaptation](#kernel-adaptation)
 
 Package bring-up
 ----------------
@@ -110,8 +109,59 @@ Most of the defaults are enough for building Android kernels with the Pie
 toolchain, so you'll probably need to change device-specific settings (such
 as vendor, name, cmdline, defconfig and the various offsets).
 
-You can find offsets by looking at the Android device tree, or by inspecting
-an already built `boot.img`.
+by unpacking an already built `boot.img` using unpackbootimg all the offsets can be found.
+
+Kernel info options
+-------------------
+
+```KERNEL_BASE_VERSION``` is the kernel version which can be viewed in Makefile at the root of your kernel source.
+as an example
+
+```
+VERSION = 4
+PATCHLEVEL = 14
+SUBLEVEL = 221
+```
+will be 4.14.221
+
+```KERNEL_DEFCONFIG``` is the defconfig filename found at arch/YOURARCH/configs
+
+```KERNEL_IMAGE_WITH_DTB``` determines whether or not to include a dtb file in the kernel. if this option is set ```KERNEL_IMAGE_DTB``` also needs to be set. if not an attempt to find it will occur.
+
+```KERNEL_IMAGE_DTB``` is the path to the dtb file which can be found in arch/YOURARCH/boot/dts/SOC/
+
+```KERNEL_IMAGE_WITH_DTB_OVERLAY``` determines whether or not to build a dtbo file. if this option is set ```KERNEL_IMAGE_DTB_OVERLAY``` also needs to be set. if not an attempt to find it will occur.
+
+```KERNEL_IMAGE_DTB_OVERLAY``` is the path to the dtbo file which can be found in arch/YOURARCH/boot/dts/SOC/
+
+All these values can be viewed by extracting a boot image with unpackbootimg
+
+```KERNEL_BOOTIMAGE_CMDLINE``` corresponds to "command line args" or "BOARD_KERNEL_CMDLINE" ```console=tty0``` and ```droidian.lvm.prefer``` should be appended to the cmdline.
+
+```KERNEL_BOOTIMAGE_PAGE_SIZE``` corresponds to "page size" or "BOARD_PAGE_SIZE"
+
+```KERNEL_BOOTIMAGE_BASE_OFFSET``` corresponds to "base" or "BOARD_KERNEL_BASE"
+
+```KERNEL_BOOTIMAGE_KERNEL_OFFSET``` corresponds to "kernel load address" or "BOARD_KERNEL_OFFSET"
+
+```KERNEL_BOOTIMAGE_INITRAMFS_OFFSET```corresponds to "ramdisk load address" or "BOARD_RAMDISK_OFFSET"
+
+```KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET``` corresponds to "second bootloader load address" or
+"BOARD_SECOND_OFFSET"
+
+```KERNEL_BOOTIMAGE_TAGS_OFFSET``` corresponds to "kernel tags load address" or "BOARD_TAGS_OFFSET"
+
+```KERNEL_BOOTIMAGE_DTB_OFFSET``` corresponds to "dtb address" or "BOARD_DTB_OFFSET"
+
+although this option is only required for kernel header version 2. it can be commented otherwise.
+
+```KERNEL_BOOTIMAGE_VERSION``` correlates to the kernel header version. Devices launched with Android 8 and lower are 0, Android 9 is 1, Android 10 is 2 and Android 11 is 2 and GKI devices are 3.
+
+For Samsung devices ```DEVICE_VBMETA_IS_SAMSUNG``` must be set to 1
+
+```BUILD_CC``` for most devices launched with Android 9 and above is clang but if your kernel fails to build with clang you might try changing the value to aarch64-linux-android-gcc-4.9 to build with gcc.
+
+```DEB_BUILD_FOR``` and ```KERNEL_ARCH``` should be changed according to device architecture.
 
 ### Enabling automatic boot partition flashing
 
@@ -158,6 +208,38 @@ FLASH_INFO_MANUFACTURER = Fxtec
 FLASH_INFO_MODEL = QX1000
 FLASH_INFO_CPU = Qualcomm Technologies, Inc MSM8998
 ```
+
+Kernel adaptation
+-----------------
+As a bare minimum these options need to be enabled in your defconfig
+```
+CONFIG_DEVTMPFS
+CONFIG_VT
+CONFIG_NAMESPACES
+CONFIG_MODULES
+CONFIG_DEVPTS_MULTIPLE_INSTANCES
+CONFIG_USB_CONFIGFS_RNDIS
+```
+
+Usually CONFIG_NAMESPACES enables all the namespace options but if it did not, all these options should be added
+
+```
+CONFIG_SYSVIPC
+CONFIG_PID_NS
+CONFIG_IPC_NS
+CONFIG_UTS_NS
+```
+
+Later on for other components, other options can be enabled after the initial boot is done successfully.
+
+As an example for Bluetooth these options might be required
+```
+CONFIG_BT
+CONFIG_BT_HCIVHCI
+```
+You can use menuconfig to make sure all the options are enabled with all their dependencies.
+
+If LXC fails to start you can use ```lxc-checkconfig``` after device first booted to check for other options that might be needed.
 
 Compiling
 ---------
