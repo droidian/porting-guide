@@ -18,7 +18,7 @@ Contents
   * [Droidian device page](https://devices.droidian.org)
 * Porting guide
   * [Kernel compilation](./kernel-compilation.md)
-  * [System image creation](./image-creation.md), This guide should only be used for legacy devices (devices released without a vendor partition).
+  * [System image creation](./image-creation.md), This guide should only be used for legacy devices (devices released without a vendor partition). Any device released with Android 9 or later can use the generic system image provided in Droidian
   * [Tips to aid debugging](./debugging-tips.md)
   * [Rootfs creation](./rootfs-creation.md)
 
