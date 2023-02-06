@@ -109,11 +109,11 @@ Kernel info options
 
 unpackbootimg syntax goes as follows
 
-`(docker)# unpackbootimg --boot_img boot.img`
+	(docker)# unpackbootimg --boot_img boot.img
 
 or for the AOSP version of unpackbootimg
 
-`(docker)# unpackbootimg -i boot.img`
+	(docker)# unpackbootimg -i boot.img
 
 ### kernel-info.mk entries
 
@@ -182,12 +182,12 @@ Note that you need to specify some device info so that `flash-bootimage` can cro
 * `FLASH_INFO_MANUFACTURER`: the value of the `ro.product.vendor.manufacturer`
 Android property. On a running Droidian system, you can obtain it with
 
-`sudo android_getprop ro.product.vendor.manufacturer`
+	(device)$ sudo android_getprop ro.product.vendor.manufacturer
 
 * `FLASH_INFO_MODEL`: the value of the `ro.product.vendor.model`
 Android property. On a running Droidian system, you can obtain it with
 
-`sudo android_getprop ro.product.vendor.model`
+	(device)$ sudo android_getprop ro.product.vendor.model
 
 * `FLASH_INFO_CPU`: a relevant bit of info from `/proc/cpuinfo`.
 
@@ -240,7 +240,7 @@ CONFIG_BT_HCIVHCI
 
 You can use menuconfig to make sure all the options are enabled with all their dependencies.
 
-`mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig`
+	(docker)# mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig
 
 After modifying your defconfig, copy `out/KERNEL_OBJ/.config` to `arch/YOURARCH/configs/your_defconfig`.
 
@@ -273,7 +273,9 @@ The boot image is shipped into the `linux-bootimage-VERSION-VENDOR-DEVICE` packa
 You can pick up the boot.img by extracting the package with `dpkg-deb` or
 by picking up directly from the compiled artifacts (`out/KERNEL_OBJ/boot.img`).
 
-The kernel image already embeds the generic Halium initramfs.
+The kernel image already embeds the Droidian initramfs.
+
+Make sure to save all your `linux-*.deb` packages as you'll need those further in the guide.
 
 Committing changes
 ------------------

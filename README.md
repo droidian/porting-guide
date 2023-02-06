@@ -18,8 +18,10 @@ Contents
   * [Droidian device page](https://devices.droidian.org)
 * Porting guide
   * [Kernel compilation](./kernel-compilation.md)
-  * [Image creation](./image-creation.md)
+  * [System image creation](./image-creation.md), This guide should only be used for legacy devices (devices released without a vendor partition).
   * [Tips to aid debugging](./debugging-tips.md)
+  * [Adaptation creation](./adaptation-creation.md)
+  * [Rootfs creation](./rootfs-creation.md)
 
 Getting community help
 ----------------------
