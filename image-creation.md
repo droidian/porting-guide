@@ -204,7 +204,7 @@ After the system image is tested and confirmed working then you can move on to [
 Packaging up the system image
 -----------------------------
 
-You'll have to package your system image to use later on when building your rootfs in [Rootfs creation](#rootfs-creation)
+You'll have to package your system image to use later on when building your rootfs in [Rootfs creation](./rootfs-creation)
 
 The main note here is that when building your debian package with your system image, it should have `android-system-gsi-28` as a conflicting package.
 

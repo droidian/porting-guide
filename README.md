@@ -20,7 +20,6 @@ Contents
   * [Kernel compilation](./kernel-compilation.md)
   * [System image creation](./image-creation.md), This guide should only be used for legacy devices (devices released without a vendor partition).
   * [Tips to aid debugging](./debugging-tips.md)
-  * [Adaptation creation](./adaptation-creation.md)
   * [Rootfs creation](./rootfs-creation.md)
 
 Getting community help
