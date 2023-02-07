@@ -1,7 +1,7 @@
 Debugging tips
 ==============
 
-When porting a new device, you might (will) encounter some issues.  
+When porting a new device, you might (will) encounter some issues.
 It's unlikely that everything will work fine at first boot, so strap in, read
 this document twice and enjoy your ride.
 
@@ -23,19 +23,14 @@ Some recoveries might fail in resizing the Droidian rootfs. This will in turn
 break the boot process (and eventual feature bundles installation) due to the
 lack of available free space.
 
-You can open a shell from your recovery (either via `adb shell` or with the built-in
-terminal) and check:
+You can open a shell from your recovery (either via `adb shell` or with the built-in terminal) and check:
 
-```
-ls -lth /data/rootfs.img
-```
+	(recovery)$ ls -lth /data/rootfs.img
 
 if the image size is not 8GB, you can attempt resizing it manually:
 
-```
-e2fsck -fy /data/rootfs.img
-resize2fs -f /data/rootfs.img 8G
-```
+	(recovery)$ e2fsck -fy /data/rootfs.img
+	(recovery)$ resize2fs -f /data/rootfs.img 8G
 
 ### (generic rootfs only) Install devtools
 
@@ -75,14 +70,11 @@ Some devices have trouble with systemd-journald. You might try masking it via re
 Note that masking journald will disable log collection, so other issues will be
 harder to debug.
 
-```
-# From a recovery shell
-mkdir /tmp/mpoint
-mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint /bin/bash
-export PATH=/usr/bin:/usr/sbin
-systemctl mask systemd-journald
-```
+	(recovery)$ mkdir /tmp/mpoint
+	(recovery)$ mount /data/rootfs.img /tmp/mpoint
+	(recovery)$ chroot /tmp/mpoint /bin/bash
+	(recovery)$ export PATH=/usr/bin:/usr/sbin
+	(recovery)$ systemctl mask systemd-journald
 
 ### Check pstore for clues
 
@@ -103,14 +95,11 @@ CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
 If you haven't masked journald, and have devtools (or a nightly image) installed, you
 can check the systemd journal:
 
-```
-# From a recovery shell
-mkdir /tmp/mpoint
-mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint /bin/bash
-export PATH=/usr/bin:/usr/sbin
-journalctl --no-pager
-```
+	(recovery)$ mkdir /tmp/mpoint
+	(recovery)$ mount /data/rootfs.img /tmp/mpoint
+	(recovery)$ chroot /tmp/mpoint /bin/bash
+	(recovery)$ export PATH=/usr/bin:/usr/sbin
+	(recovery)$ journalctl --no-pager
 
 Stuck at the glowing Droidian logo, and RNDIS is not working
 ------------------------------------------------------------
@@ -121,16 +110,6 @@ and "Check systemd journal for clues" parts. They'll help here as well.**
 If you have devtools installed (or have flashed a nightly image) but still don't
 have working RNDIS, these tips might help you:
 
-### Check your kernel configuration
-
-Re-check your kernel configuration using [mer-kernel-check](https://github.com/mer-hybris/mer-kernel-check).
-
-Ensure kernel namespaces features are enabled (like `CONFIG_NAMESPACES`, `CONFIG_UTS_NS`, `CONFIG_IPC_NS`,
-`CONFIG_PID_NS`, `CONFIG_NET_NS`...).
-
-You might also check this diffconfig snippet for the official Sony Xperia 5 adaptation:
-https://github.com/droidian-devices/android_kernel_sony_kumano/blob/droidian/55.2.A.4.xxx/droidian/halium.config
-
 ### (generic rootfs only) Mask resolved and timesyncd
 
 Some kernels have trouble with the kernel namespaces systemd creates to run some
@@ -138,15 +117,12 @@ daemons, like timesyncd and resolved. This might make the boot process hang.
 
 You might try masking those two services via a recovery shell:
 
-```
-# From a recovery shell
-mkdir /tmp/mpoint
-mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint /bin/bash
-export PATH=/usr/bin:/usr/sbin
-systemctl mask systemd-resolved
-systemctl mask systemd-timesyncd
-```
+	(recovery)$ mkdir /tmp/mpoint
+	(recovery)$ mount /data/rootfs.img /tmp/mpoint
+	(recovery)$ chroot /tmp/mpoint /bin/bash
+	(recovery)$ export PATH=/usr/bin:/usr/sbin
+	(recovery)$ systemctl mask systemd-resolved
+	(recovery)$ systemctl mask systemd-timesyncd
 
 **If this worked, re-check your kernel configuration. See the section above.**
 
@@ -157,20 +133,15 @@ the RNDIS connection.
 
 You can disable the Halium container startup with the following:
 
-```
-# From a recovery shell
-mkdir /tmp/mpoint
-mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint /bin/bash
-export PATH=/usr/bin:/usr/sbin
-nano /etc/systemd/system/lxc@android.service
-```
+	(recovery)$ mkdir /tmp/mpoint
+	(recovery)$ mount /data/rootfs.img /tmp/mpoint
+	(recovery)$ chroot /tmp/mpoint /bin/bash
+	(recovery)$ export PATH=/usr/bin:/usr/sbin
+	(recovery)$ nano /etc/systemd/system/lxc@android.service
 
 Comment the ExecStartPre and ExecStart lines, add
 
-```
-ExecStart=/bin/true
-```
+`ExecStart=/bin/true`
 
 save, sync and reboot
 
@@ -179,14 +150,11 @@ save, sync and reboot
 You might try pre-configuring your WLAN device and attempt getting in via WLAN
 rather than RNDIS:
 
-```
-# From a recovery shell
-mkdir /tmp/mpoint
-mount /data/rootfs.img /tmp/mpoint
-chroot /tmp/mpoint /bin/bash
-export PATH=/usr/bin:/usr/sbin
-nano /etc/network/interfaces
-```
+	(recovery)$ mkdir /tmp/mpoint
+	(recovery)$ mount /data/rootfs.img /tmp/mpoint
+	(recovery)$ chroot /tmp/mpoint /bin/bash
+	(recovery)$ export PATH=/usr/bin:/usr/sbin
+	(recovery)$ nano /etc/network/interfaces
 
 and put the following there:
 
@@ -233,19 +201,15 @@ Stuck at the Droidian logo, but I have a shell
 
 You can start a root shell with
 
-```
-sudo -i
-```
+	(device)$ sudo -i
 
 ### Umount schedtune
 
 Schedtune must be disabled for Droidian to work, but some device kernels complain
 about that. So the workaround is to umount schedtune at boot:
 
-```
-mkdir -p /etc/systemd/system/android-mount.service.d
-nano /etc/systemd/system/android-mount.service.d/10-schedtune.conf
-```
+	(device)# mkdir -p /etc/systemd/system/android-mount.service.d
+	(device)# nano /etc/systemd/system/android-mount.service.d/10-schedtune.conf
 
 add this there:
 
@@ -260,9 +224,7 @@ save and reboot
 
 You can use
 
-```
-lxc-ls --fancy
-```
+	(device)# lxc-ls --fancy
 
 to check if the Halium container is running
 
@@ -270,29 +232,23 @@ to check if the Halium container is running
 
 If the Halium container is not running, you might try launching it manually:
 
-```
-lxc-start -n android --logfile=/tmp/lxclog --logpriority=DEBUG
-```
+	(device)# lxc-start -n android --logfile=/tmp/lxclog --logpriority=DEBUG
 
 then check `/tmp/lxclog`.
-
 
 ### Re-generate udev rules
 
 If the container is running, but you still haven't booted up to UI, you might try
-regenerating the udev rules (snippet from the [ubports halium-9 porting notes](https://github.com/ubports/porting-notes/wiki/Halium-9#generating-udev-rules))
+regenerating the udev rules (snippet from the [UBports halium-9 porting notes](https://github.com/ubports/porting-notes/wiki/Halium-9#generating-udev-rules))
 
-```
-DEVICE=pro1 # replace with your device codename
-cat /var/lib/lxc/android/rootfs/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' >/etc/udev/rules.d/70-$DEVICE.rules
-```
+	(device)# DEVICE=codename # replace with your device codename
+	(device)# cat /var/lib/lxc/android/rootfs/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' >/etc/udev/rules.d/70-$DEVICE.rules
 
 Then reboot.
 
 ### Check if test_hwcomposer works
 
-Trying the `test_hwcomposer` command might be an useful test to check if the Android
-composer works.
+Trying the `test_hwcomposer` command might be an useful test to check if the Android composer works.
 
 Note that on Halium 10/11 devices you might need to restart the Android composer service after
 using a client like test_hwcomposer or phoc itself. You can kill the `android.service.composer` process, it will be
@@ -304,10 +260,8 @@ Sometimes phosh might attempt its startup even when the android composer service
 ready (even if it signals so itself). This is a bug, and you can workaround that by
 making the phosh service (which starts the compositor) wait some seconds:
 
-```
-mkdir -p /etc/systemd/system/phosh.service.d/
-nano /etc/systemd/system/phosh.service.d/90-wait.conf
-```
+	(device)# mkdir -p /etc/systemd/system/phosh.service.d/
+	(device)# nano /etc/systemd/system/phosh.service.d/90-wait.conf
 
 and put this there:
 

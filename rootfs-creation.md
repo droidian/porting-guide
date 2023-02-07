@@ -1,5 +1,6 @@
 Rootfs creation
 ===============
+To make the installation easier and more consistent we build device specific rootfs images.
 
 Table of contents
 -----------------
@@ -46,29 +47,29 @@ As you will be building for a device with another architecture, you must initial
 
 Go to the newly created adaptation directory
 
-	(host)$ cd ~/droidian/vendor/codename/packages/adaptation-vendor-codename/
+	(host)$ cd ~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/
 
 Now put all your device specific files under `sparse/` with a linux directory structure
 
-Make sure to put your repository's URL in `~/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list` with this format
+Make sure to put your repository's URL in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list` with this format
 
 `deb [signed-by=/usr/share/keyrings/codename.gpg] https://YOURREPO.TLD bookworm main`
 
-Then copy your gpg file to `~/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/share/keyrings/codename.gpg`. Make sure to replace codename.
+Then copy your gpg file to `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/share/keyrings/codename.gpg`. Make sure to replace codename.
 
 After copying all your files build the deb package
 
-	(host)$ droidian-build-package
+	(host)$ ~/droidian-build-tools/droidian-build-package
 
-Make sure to copy all the files from `~/droidian/vendor/codename/droidian/apt` to the repository you specified in `~/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list`
+Make sure to copy all the files from `~/droidian-build-tools/droidian/vendor/codename/droidian/apt` to the repository you specified in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list`
 
 Also make sure to commit your repository/changes to a git repository.
 
 Building the rootfs
 -------------------
 
-Before building the rootfs make sure to add your `linux-*.deb` packages you have build during the kernel compilation process to `~/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/community_devices.yml` as a package entry.
-As an alternative solution you can try adding those packages as a dependency to your adaptation package in `~/droidian/vendor/codename/packages/adaptation-vendor-codename/debian/control`.
+Before building the rootfs make sure to add your `linux-*.deb` packages you have build during the kernel compilation process to `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/community_devices.yml` as a package entry.
+As an alternative solution you can try adding those packages as a dependency to your adaptation package in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/debian/control`.
 
 First pull the rootfs-builder docker image
 
@@ -76,9 +77,9 @@ First pull the rootfs-builder docker image
 
 Now run debos in the docker container rootfs-builder to build the rootfs. Make sure to replace the placeholder values
 
-	(host)$ cd ~/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/ && mkdir images && docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:bookworm-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="nightly" ./generate_device_recipe.py vendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
+	(host)$ cd ~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/ && mkdir images && docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:bookworm-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="nightly" ./generate_device_recipe.py vendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
 
-If everything builds fine you should have your LVM fastboot flashable rootfs image in `~/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/images/`.
+If everything builds fine you should have your LVM fastboot flashable rootfs image in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/images/`.
 
 Automating nightly images
 -------------------------

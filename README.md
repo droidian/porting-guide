@@ -1,5 +1,5 @@
 Droidian porting guide
-===========================
+======================
 
 Droidian is a GNU/Linux distribution based on top of [Mobian](https://mobian-project.org),
 a Debian-based distribution for mobile devices.
