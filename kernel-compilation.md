@@ -165,6 +165,8 @@ Although this option is only required for kernel header version 2. it can be com
 
 * `BUILD_CC` for most devices launched with Android 9 and above is clang but if your kernel fails to build with `clang` you might try changing the value to `aarch64-linux-android-gcc-4.9` to build with gcc.
 
+* If your device requires a toolchain which is not included in the buildsystem, you can manually download the toolchain and add the path to `BUILD_PATH`.
+
 * `DEB_BUILD_FOR` and `KERNEL_ARCH` should be changed according to device architecture.
 
 ### Enabling automatic boot partition flashing
@@ -206,43 +208,115 @@ FLASH_INFO_MODEL = QX1000
 FLASH_INFO_CPU = Qualcomm Technologies, Inc MSM8998
 ```
 
+### control file
+
+In case of a missing package error for python2, you can replace Build-Depends entry for `python2` to `python-is-python3`.
+
+You can also add any extra package which might be required for your device to Build-Depends. 
+
+### initramfs hooks
+
+In case of any issues with initramfs (as an example unl0kr showing a black screen while encryption is enabled), scripts can be added to the packaging which will be included in the ramdisk.
+
+[This packaging](https://github.com/droidian-devices/linux-android-fxtec-pro1x/blob/bookworm/debian/initramfs-overlay/scripts/halium-hooks) can be taken as a reference.
+
+The following adds a function which will run in the initramfs on boot.
+
+Any command that will aid the system in booting can be added to the script.
+
+### build rules
+
+On builds failing after the kernel compilation stage (during packaging), errors can be ignored.
+
+build sequence can be altered with `override_dh_sequence` (make sure to replace sequence with your own sequence)
+
+As as example
+
+```
+override_dh_dwz:
+override_dh_strip:
+override_dh_makeshlibs:
+```
+
+can be added to the end of `rules`.
+
+It is recommended to come back and fix the build errors later on instead of ignoring them as they might cause various issues in the future.
+
 Kernel adaptation
 -----------------
 
 As a bare minimum these options need to be enabled in your defconfig
 
 ```
-CONFIG_DEVTMPFS
-CONFIG_VT
-CONFIG_NAMESPACES
-CONFIG_MODULES
-CONFIG_DEVPTS_MULTIPLE_INSTANCES
-CONFIG_USB_CONFIGFS_RNDIS
+CONFIG_DEVTMPFS=y
+CONFIG_VT=y
+CONFIG_NAMESPACES=y
+CONFIG_MODULES=y
+CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
+CONFIG_USB_CONFIGFS_RNDIS=y
+CONFIG_USB_CONFIGFS_RMNET_BAM=y
+CONFIG_USB_CONFIGFS_MASS_STORAGE=y
+CONFIG_INIT_STACK_ALL_ZERO=y
+CONFIG_ANDROID_PARANOID_NETWORK=n
+CONFIG_ANDROID_BINDERFS=n
 ```
 
 Usually `CONFIG_NAMESPACES` enables all the namespace options but if it did not, all these options should be added
 
 ```
-CONFIG_SYSVIPC
-CONFIG_PID_NS
-CONFIG_IPC_NS
-CONFIG_UTS_NS
+CONFIG_SYSVIPC=y
+CONFIG_PID_NS=y
+CONFIG_IPC_NS=y
+CONFIG_UTS_NS=y
 ```
 
 Later on for other components, various options should be enabled after the initial boot is done successfully.
 
-As an example for Bluetooth these options might be required
+For Bluetooth these options are required
 
 ```
-CONFIG_BT
-CONFIG_BT_HCIVHCI
+CONFIG_BT=y
+CONFIG_BT_HIDP=y
+CONFIG_BT_RFCOMM=y
 ```
+
+For Waydroid
+
+```
+CONFIG_SW_SYNC_USER=y
+CONFIG_NET_CLS_CGROUP=y
+CONFIG_CGROUP_NET_CLASSID=y
+CONFIG_VETH=y
+CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
+CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder"
+```
+
+To ease debugging, pstore can be enabled to get logs on each boot
+
+```
+CONFIG_PSTORE=y
+CONFIG_PSTORE_CONSOLE=y
+CONFIG_PSTORE_RAM=y
+CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
+```
+
+If you have pstore enabled, you might find clues in `/sys/fs/pstore` from your recovery.
 
 You can use menuconfig to make sure all the options are enabled with all their dependencies.
 
 	(docker)# mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig
 
 After modifying your defconfig, copy `out/KERNEL_OBJ/.config` to `arch/YOURARCH/configs/your_defconfig`.
+
+As an alternative, `KERNEL_CONFIG_USE_FRAGMENTS = 1` can be set in `kernel-info.mk` to include defconfig fragments inside your defconfig on build time.
+
+defconfig fragments should be placed in the root of the kernel source in a directory called droidian. [this source](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/bookworm/droidian) can be taken as a reference.
+
+`KERNEL_CONFIG_USE_DIFFCONFIG` can be enabled to use the python script `diffconfig` to compare fragments and the main defconfig.
+
+to use diffconfig a diff file should be provided like so
+
+`KERNEL_PRODUCT_DIFFCONFIG = diff_file`
 
 If LXC fails to start you can use `lxc-checkconfig` after device first booted to check for other options that might be needed.
 

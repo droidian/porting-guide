@@ -76,20 +76,6 @@ harder to debug.
 	(recovery)$ export PATH=/usr/bin:/usr/sbin
 	(recovery)$ systemctl mask systemd-journald
 
-### Check pstore for clues
-
-If you have pstore enabled, you might find clues in `/sys/fs/pstore` from your
-recovery.
-
-If you don't have it enabled, you should add these options to your kernel configuration:
-
-```
-CONFIG_PSTORE=y
-CONFIG_PSTORE_CONSOLE=y
-CONFIG_PSTORE_RAM=y
-CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
-```
-
 ### (generic rootfs only) Check systemd journal for clues
 
 If you haven't masked journald, and have devtools (or a nightly image) installed, you

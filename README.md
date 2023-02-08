@@ -1,3 +1,4 @@
+
 Droidian porting guide
 ======================
 
@@ -11,6 +12,10 @@ This is accomplished by using well-known technologies such as [libhybris](https:
 If your device is launched with Android 9 or above it is possible to port Droidian to it.
 If it already has a halium-compliant kernel of halium-9.0 and above chances are that Droidian will work without much modification.
 
+The "System image creation" guide should only be used for legacy devices (devices released without a vendor partition) which have an Android 9 port (device tree, vendor tree and kernel source).
+Legacy devices without an Android 9 port cannot be ported to Droidian. So it's either Android 9 or bust!
+Any device released with Android 8.1 or later can use the generic system image provided in Droidian and skip this section.
+
 Contents
 --------
 
@@ -18,7 +23,7 @@ Contents
   * [Droidian device page](https://devices.droidian.org)
 * Porting guide
   * [Kernel compilation](./kernel-compilation.md)
-  * [System image creation](./image-creation.md), This guide should only be used for legacy devices (devices released without a vendor partition). Any device released with Android 9 or later can use the generic system image provided in Droidian
+  * [System image creation](./image-creation.md), skip this section if your device is treble/has a vendor partition (released with Android 8.1 or later).
   * [Tips to aid debugging](./debugging-tips.md)
   * [Rootfs creation](./rootfs-creation.md)
 
@@ -38,3 +43,4 @@ logs). If someone is available it will try to help you.
 
 Note that no one owes you an answer, avoid pinging people repeatedly. Avoid posting screenshots of
 text messages, use a pastebin service instead.
+
