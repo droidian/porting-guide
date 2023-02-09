@@ -179,8 +179,11 @@ To make ssh ignore systemd complaining, [this](https://github.com/droidian-mt676
 	(recovery)$ mount /data/rootfs.img /tmp/mpoint
 	(recovery)$ chroot /tmp/mpoint /bin/bash
 	(recovery)$ export PATH=/usr/bin:/usr/sbin
+	(recovery)$ nano /etc/systemd/system
 
-And add this service file.
+Put the content of the service file
+
+	(recovery)$ systemctl enable ssh-fix
 
 ### Continue trying other stuff
 
@@ -199,6 +202,27 @@ Stuck at the Droidian logo, but I have a shell
 You can start a root shell with
 
 	(device)$ sudo -i
+
+### USB Networking
+
+To share your hosts network connection with your device you can use the following on your host
+
+	(host)$ sudo sysctl net.ipv4.ip_forward=1
+	(host)$ sudo iptables -t nat -A POSTROUTING -o $INTERNET -j MASQUERADE
+	(host)$ sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+	(host)$ sudo iptables -A FORWARD -i $USB -o $INTERNET -j ACCEPT
+
+$USB is the interface connected to your device, most likely usb0
+
+$INTERNET is the interface connected to the internet.
+
+Then run the following on your device
+
+	(device)$ sudo ip route add default via 10.15.19.100
+
+The ip address `10.15.19.100` is your host. Double check it before running the command.
+
+Now to access the internet replace the content of `/etc/resolv.conf` with `nameserver 8.8.8.8`.
 
 ### Umount schedtune
 
@@ -284,6 +308,14 @@ On Mediatek devices, power button will stop working after being used once.
 
 It should be compiled on the device itself or it can be cross compiled from a computer.
 
+### Brightness adjusting from drop down menu
+
+On some devices, vendor sets the wrong permission for the brightness sysfs node at boot so Phosh cannot access and modify it.
+
+A service like [this](https://github.com/droidian-onclite/adaptation-droidian-onclite/blob/main/debian/adaptation-onclite-configs.brightnessperm.service) can be used to set the correct permission or at least give the user droidian access to the sysfs node
+
+Make sure to replace the brightness node according to your needs.
+
 ### Phosh scaling
 
 Phosh might have the wrong scaling set. phoc.ini should be created to adjust it
@@ -301,7 +333,7 @@ To overlay a file over vendor, the droid-vendor-overlay can be used
 
 	(device)# mkdir -p /usr/lib/droid-vendor-overlay
 
-and the your files can be added here. take [this](https://github.com/droidian-mt6765/adaptation-droidian-garden/tree/main/usr/lib/droid-vendor-overlay) as a reference.
+and the your files can be added here. take [this](https://github.com/droidian-devices/adaptation-fxtec-pro1x/tree/bookworm/sparse/usr/lib/droid-vendor-overlay) as a reference.
 
 It should be noted that the directory structure matters.
 
@@ -338,8 +370,8 @@ To set a custom hostname on boot, a preferred hostname file can be created
 	(device)# mkdir -p /var/lib/droidian/
 	(device)# nano preferred_hostname
 
-And put your device model or codename without any spaces
+And put your device model or codename without any spaces.
 
 ### Kernel modules
 
-`systemd-modules-load` doesn't load the modules on Mediatek. [This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service to some similar implementation can be included to load all the correct modules and get Wi-Fi working.
+`systemd-modules-load` doesn't load the modules on Mediatek. [This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service or some similar implementation can be included to load all the correct modules and get Wi-Fi working.

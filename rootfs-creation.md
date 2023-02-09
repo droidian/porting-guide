@@ -63,6 +63,15 @@ After copying all your files build the deb package
 
 Make sure to copy all the files from `~/droidian-build-tools/droidian/vendor/codename/droidian/apt` to the repository you specified in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list`
 
+Now at this point you can use `package-sideload-create` on your droidian device to create a recovery flashable package from those two deb packages.
+
+After copying the deb files to your personal repository, add that repository to your device by adding the sources list file to your device then do
+
+	(device)# apt update
+	(device)# package-sideload-create adaptation-droidian-codename.zip adaptation-vendor-codename adaptation-vendor-codename-configs
+
+At the end you should get a zip file which is flashable from recovery and has all your changes.
+
 Also make sure to commit your repository/changes to a git repository.
 
 Building the rootfs
