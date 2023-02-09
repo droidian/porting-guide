@@ -1,9 +1,7 @@
-
 Droidian porting guide
 ======================
 
-Droidian is a GNU/Linux distribution based on top of [Mobian](https://mobian-project.org),
-a Debian-based distribution for mobile devices.
+Droidian is a GNU/Linux distribution based on top of [Mobian](https://mobian-project.org), a Debian-based distribution for mobile devices.
 
 The goal of Droidian is to be able to run Mobian on Android phones.
 
@@ -13,7 +11,9 @@ If your device is launched with Android 9 or above it is possible to port Droidi
 If it already has a halium-compliant kernel of halium-9.0 and above chances are that Droidian will work without much modification.
 
 The "System image creation" guide should only be used for legacy devices (devices released without a vendor partition) which have an Android 9 port (device tree, vendor tree and kernel source).
+
 Legacy devices without an Android 9 port cannot be ported to Droidian. So it's either Android 9 or bust!
+
 Any device released with Android 8.1 or later can use the generic system image provided in Droidian and skip this section.
 
 Contents

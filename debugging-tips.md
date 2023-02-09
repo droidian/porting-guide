@@ -1,19 +1,28 @@
 Debugging tips
 ==============
+A set of tips and fixes that might help you debug the issues of your port of Droidian.
+
+Table of contents
+-----------------
+
+* [Summary](#summary)
+* [Pre boot tips](#pre-boot-tips)
+* [Tips for when the systen is booted with shell](#tips-for-when-the-systen-is-booted-with-shell)
+* [Tips for when the system is up with Phosh](#tips-for-when-the-system-is-up-with-phosh)
+
+Summary
+-------
 
 When porting a new device, you might (will) encounter some issues.
-It's unlikely that everything will work fine at first boot, so strap in, read
-this document twice and enjoy your ride.
+It's unlikely that everything will work fine at first boot, so strap in,
+read this document twice and enjoy your ride.
 
 Tips marked with **(generic rootfs only)** are useful/applicable only on
 Droidian installations installed via the generic rootfs .zip flashed via recovery (note
 that this document assumes TWRP as the recovery used).
 
-Likewise, tips marked with **(fastboot only)** are useful/applicable only on
-Droidian installations flashed via fastboot.
-
-Generic tips
-------------
+Pre boot tips
+-------------
 
 These things are worth checking first:
 
@@ -47,28 +56,23 @@ Nightly releases embed devtools on the rootfs. If you have trouble installing de
 on a stable release, consider trying a nightly image so that you don't need to install
 it separatedly.
 
-No Droidian logo displayed or Android/Ubuntu Touch boots rather than Droidian
------------------------------------------------------------------------------
-
 ### Double-check cmdline for the `systempart=` option
 
 If you're re-using the same boot image from Ubuntu Touch, you might have the
-`systempart=` option in the kernel cmdline.
+`systempart=` option in the kernel cmdline. This might lead to Android/Ubuntu Touch booting rather than Droidian
 
 Unlike Ubuntu Touch, Droidian doesn't use the existing system partition for the
 rootfs. Thus, if you have the `systempart=` kernel option, remove it and recompile
 your kernel (or otherwise remove it from the bootimage using tools like yabit or
 Android Image Kitchen).
 
-Device reboots immediately
---------------------------
+If your device reboots immediately, you should try the these few systemd sections
 
 ### (generic rootfs only) Mask journald
 
 Some devices have trouble with systemd-journald. You might try masking it via recovery.
 
-Note that masking journald will disable log collection, so other issues will be
-harder to debug.
+Note that masking journald will disable log collection, so other issues will be harder to debug.
 
 	(recovery)$ mkdir /tmp/mpoint
 	(recovery)$ mount /data/rootfs.img /tmp/mpoint
@@ -78,8 +82,7 @@ harder to debug.
 
 ### (generic rootfs only) Check systemd journal for clues
 
-If you haven't masked journald, and have devtools (or a nightly image) installed, you
-can check the systemd journal:
+If you haven't masked journald, and have devtools (or a nightly image) installed, you can check the systemd journal:
 
 	(recovery)$ mkdir /tmp/mpoint
 	(recovery)$ mount /data/rootfs.img /tmp/mpoint
@@ -87,18 +90,15 @@ can check the systemd journal:
 	(recovery)$ export PATH=/usr/bin:/usr/sbin
 	(recovery)$ journalctl --no-pager
 
-Stuck at the glowing Droidian logo, and RNDIS is not working
-------------------------------------------------------------
+If you are stuck at the glowing Droidian logo and RNDIS is not working, you should into your kernel config to make sure `CONFIG_USB_CONFIGFS_RNDIS` is enabled.
 
-**Before proceeding, read the previous section, especially the "Check pstore for clues"
-and "Check systemd journal for clues" parts. They'll help here as well.**
+It should also be noted that you should check the pstore section of the [kernel compilation](./kernel-compilation.md) guide.
 
-If you have devtools installed (or have flashed a nightly image) but still don't
-have working RNDIS, these tips might help you:
+If you have devtools installed (or have flashed a nightly image) but still don't have working RNDIS, these tips might help you:
 
 ### (generic rootfs only) Mask resolved and timesyncd
 
-Some kernels have trouble with the kernel namespaces systemd creates to run some
+Some kernels (exynos kernels are known to have this issue) have trouble with the kernel namespaces systemd creates to run some
 daemons, like timesyncd and resolved. This might make the boot process hang.
 
 You might try masking those two services via a recovery shell:
@@ -114,8 +114,7 @@ You might try masking those two services via a recovery shell:
 
 ### (generic rootfs only) Disable the Halium container
 
-Some vendor scripts might conflict with the usb-tethering script used to set-up
-the RNDIS connection.
+Some vendor scripts might conflict with the usb-tethering script used to set-up the RNDIS connection.
 
 You can disable the Halium container startup with the following:
 
@@ -133,8 +132,7 @@ save, sync and reboot
 
 ### (generic rootfs only) Setup connection via WLAN
 
-You might try pre-configuring your WLAN device and attempt getting in via WLAN
-rather than RNDIS:
+You might try pre-configuring your WLAN device and attempt getting in via WLAN rather than RNDIS:
 
 	(recovery)$ mkdir /tmp/mpoint
 	(recovery)$ mount /data/rootfs.img /tmp/mpoint
@@ -165,7 +163,7 @@ iface wlan0 inet static
   gateway <gw>
 ```
 
-Reboot, and if everything went smoothly you can try getting in with `ssh droidian@<IP>`.
+Reboot, and if everything went smoothly you can try getting in with `ssh droidian@$IP`.
 
 If you configured using DHCP, you should check among your DHCP server leases.
 
@@ -173,7 +171,7 @@ The default password is `1234`.
 
 ### ssh saying system is still booting
 
-To make ssh ignore systemd complaining, [this](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.ssh-fix.service) service file can added in recovery
+To make ssh ignore systemd complaining, [this service file](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.ssh-fix.service) can added in recovery
 
 	(recovery)$ mkdir /tmp/mpoint
 	(recovery)$ mount /data/rootfs.img /tmp/mpoint
@@ -185,17 +183,10 @@ Put the content of the service file
 
 	(recovery)$ systemctl enable ssh-fix
 
-### Continue trying other stuff
+Tips for when the systen is booted with shell
+---------------------------------------------
 
-If you are still unable to get a shell, you might want to continue reading
-and try the other tips shown in this document. Keep in mind that you are ought
-to try them via the Android recovery since you don't have SSH working. Some tips
-might not apply in this case.
-
-Stuck at the Droidian logo, but I have a shell
-----------------------------------------------
-
-**Before proceeding, read the previous section, those tips are useful for this case as well.**
+**Before proceeding, read the previous section, those tips might be useful as well.**
 
 **NOTE THAT EVERY COMMAND IN THIS SECTION IMPLIES ROOT PRIVILEGES UNLESS EXPLICITLY SPECIFIED**
 
@@ -212,7 +203,7 @@ To share your hosts network connection with your device you can use the followin
 	(host)$ sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 	(host)$ sudo iptables -A FORWARD -i $USB -o $INTERNET -j ACCEPT
 
-$USB is the interface connected to your device, most likely usb0
+$USB is the interface connected to your device, most likely `usb0`
 
 $INTERNET is the interface connected to the internet.
 
@@ -275,11 +266,12 @@ Note that on Halium 10/11 devices you might need to restart the Android composer
 using a client like test_hwcomposer or phoc itself. You can kill the `android.service.composer` process, it will be
 respawned by the android init automatically.
 
-### Make the phosh service wait some seconds before start-up
+### Make the Phosh service wait some seconds before start-up
 
-Sometimes phosh might attempt its startup even when the android composer service is not
-ready (even if it signals so itself). This is a bug, and you can workaround that by
-making the phosh service (which starts the compositor) wait some seconds:
+Sometimes Phosh might attempt its startup even when the Android composer service is not
+ready (even if it signals so itself).
+
+This is a bug, and you can workaround that by making the phosh service (which starts the compositor) wait some seconds:
 
 	(device)# mkdir -p /etc/systemd/system/phosh.service.d/
 	(device)# nano /etc/systemd/system/phosh.service.d/90-wait.conf
@@ -294,6 +286,9 @@ ExecStartPre=/usr/bin/sleep 5
 
 Save and reboot.
 
+Tips for when the system is up with Phosh
+-----------------------------------------
+
 ### Screen brightness
 
 On some Qualcomm devices, screen brightness is always set to 0 on boot. to work around this issue brightness can be set to maximum on each boot
@@ -302,7 +297,7 @@ On some Qualcomm devices, screen brightness is always set to 0 on boot. to work 
 
 It can also be set as a service to start at boot like [this service file](https://github.com/droidian-lavender/adaptation-droidian-lavender/blob/main/debian/adaptation-lavender-configs.brightness.service).
 
-On Mediatek devices, power button will stop working after being used once.
+On MediaTek devices, power button will stop working after being used once.
 
 [This hack](https://github.com/droidian-mt6765/garden_power_button_helper) or a hack close to it can be used for now.
 
@@ -323,13 +318,13 @@ Phosh might have the wrong scaling set. phoc.ini should be created to adjust it
 	(device)# mkdir -p /etc/phosh/
 	(device)# nano phoc.ini
 
-and put [this](https://github.com/droidian-lavender/adaptation-droidian-lavender/blob/main/etc/phosh/phoc.ini)
+and put [phoc.ini](https://github.com/droidian-lavender/adaptation-droidian-lavender/blob/main/etc/phosh/phoc.ini)
 
 the value for `output:HWCOMPOSER-1` should be adjusted.
 
-### vendor overlay
+### vendor parititon overlay
 
-To overlay a file over vendor, the droid-vendor-overlay can be used
+To overlay a file over the vendor partition, `droid-vendor-overlay` directory can be used
 
 	(device)# mkdir -p /usr/lib/droid-vendor-overlay
 
@@ -337,9 +332,9 @@ and the your files can be added here. take [this](https://github.com/droidian-de
 
 It should be noted that the directory structure matters.
 
-### system overlay
+### system partition overlay
 
-To overlay a file over system, the droid-system-overlay can be used
+To overlay a file over the system partition, `droid-system-overlay` directory can be used
 
 	(device)# mkdir -p /usr/lib/droid-system-overlay
 
@@ -357,11 +352,24 @@ Bluetooth might crash because of missing MAC Address. To make the bluetooth serv
 For a proper solution, a `droid-get-bt-address.sh` script which fetches the correct address should be created.
 
 An example of this solution can be found at [here](https://github.com/droidian-sargo/adaptation-droidian-sargo/blob/bookworm/usr/bin/droid/droid-get-bt-address.sh) for Qualcomm's
-and [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/usr/bin/droid/droid-get-bt-address.sh) for Mediatek's.
+and [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/usr/bin/droid/droid-get-bt-address.sh) for MediaTek's.
+
+### Bluetooth not available in settings
+
+Bluetooth might fail to appear in `gnome-control-center` for various reasons.
+
+It can be tested with `bluetoothctl` or `blueman`
+
+	(device)$ bluetoothctl
+	[bluetooth]# help
+
+or to install blueman
+
+	(device)# apt install blueman
 
 ### Audio adjusting not working
 
-on Mediatek devices, pulseaudio requires a custom configuration file which can be found [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/etc/pulse/arm_droid_card_custom.pa).
+on MediaTek devices, pulseaudio requires a custom configuration file which can be found [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/etc/pulse/arm_droid_card_custom.pa).
 
 ### Custom hostname
 
@@ -374,4 +382,18 @@ And put your device model or codename without any spaces.
 
 ### Kernel modules
 
-`systemd-modules-load` doesn't load the modules on Mediatek. [This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service or some similar implementation can be included to load all the correct modules and get Wi-Fi working.
+`systemd-modules-load` doesn't load the modules on MediaTek. [This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service or some similar implementation can be included to load all the correct modules and get Wi-Fi working.
+
+### Cursor on the screen
+
+Some devices have an some HID interfaces which are not used by Droidian. These interfaces might get registered as things such as keyboard or mouse.
+
+As a result you might see a cursor on the screen for no obvious reason. 
+
+To hide this event node a udev rule can be added
+
+`ACTION=="add|change", KERNEL=="event1", OWNER="root", GROUP="system", MODE="0666", ENV{LIBINPUT_IGNORE_DEVICE}="1"`
+
+to `/etc/udev/rules.d/71-hide.rules`.
+
+Make sure to adapt the event node in this line and reboot.

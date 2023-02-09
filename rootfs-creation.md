@@ -78,6 +78,7 @@ Building the rootfs
 -------------------
 
 Before building the rootfs make sure to add your `linux-*.deb` packages you have build during the kernel compilation process to `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/community_devices.yml` as a package entry.
+
 As an alternative solution you can try adding those packages as a dependency to your adaptation package in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/debian/control`.
 
 First pull the rootfs-builder docker image
@@ -86,13 +87,15 @@ First pull the rootfs-builder docker image
 
 Now run debos in the docker container rootfs-builder to build the rootfs. Make sure to replace the placeholder values
 
-	(host)$ cd ~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/ && mkdir images && docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:bookworm-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="nightly" ./generate_device_recipe.py vendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
+	(host)$ cd ~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/
+	(host)$ mkdir images
+	(host)$ docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:bookworm-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="nightly" ./generate_device_recipe.py vendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
 
 If everything builds fine you should have your LVM fastboot flashable rootfs image in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/images/`.
 
 Automating nightly images
 -------------------------
 
-You can automate your builds with GitHub actions to generate new images every day for your device with your changes. Take [this actions yml file](https://github.com/droidian-onclite/droidian-images/blob/bookworm/.github/workflows/release.yml) as an example
+You can automate your builds with GitHub actions to generate new images every day for your device with your changes. Take [this actions yml file](https://github.com/droidian-onclite/droidian-images/blob/bookworm/.github/workflows/release.yml) as an example.
 
 You can replicate nightly builds by replacing the values in `community_devices.yml` and files in `apt/`.
