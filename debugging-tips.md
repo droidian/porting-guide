@@ -171,6 +171,17 @@ If you configured using DHCP, you should check among your DHCP server leases.
 
 The default password is `1234`.
 
+### ssh saying system is still booting
+
+To make ssh ignore systemd complaining, [this](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.ssh-fix.service) service file can added in recovery
+
+	(recovery)$ mkdir /tmp/mpoint
+	(recovery)$ mount /data/rootfs.img /tmp/mpoint
+	(recovery)$ chroot /tmp/mpoint /bin/bash
+	(recovery)$ export PATH=/usr/bin:/usr/sbin
+
+And add this service file.
+
 ### Continue trying other stuff
 
 If you are still unable to get a shell, you might want to continue reading
@@ -258,3 +269,77 @@ ExecStartPre=/usr/bin/sleep 5
 ```
 
 Save and reboot.
+
+### Screen brightness
+
+On some Qualcomm devices, screen brightness is always set to 0 on boot. to work around this issue brightness can be set to maximum on each boot
+
+	(device)$ echo 2047 > /sys/class/leds/lcd-backlight/brightness
+
+It can also be set as a service to start at boot like [this service file](https://github.com/droidian-lavender/adaptation-droidian-lavender/blob/main/debian/adaptation-lavender-configs.brightness.service).
+
+On Mediatek devices, power button will stop working after being used once.
+
+[This hack](https://github.com/droidian-mt6765/garden_power_button_helper) or a hack close to it can be used for now.
+
+It should be compiled on the device itself or it can be cross compiled from a computer.
+
+### Phosh scaling
+
+Phosh might have the wrong scaling set. phoc.ini should be created to adjust it
+
+	(device)# mkdir -p /etc/phosh/
+	(device)# nano phoc.ini
+
+and put [this](https://github.com/droidian-lavender/adaptation-droidian-lavender/blob/main/etc/phosh/phoc.ini)
+
+the value for `output:HWCOMPOSER-1` should be adjusted.
+
+### vendor overlay
+
+To overlay a file over vendor, the droid-vendor-overlay can be used
+
+	(device)# mkdir -p /usr/lib/droid-vendor-overlay
+
+and the your files can be added here. take [this](https://github.com/droidian-mt6765/adaptation-droidian-garden/tree/main/usr/lib/droid-vendor-overlay) as a reference.
+
+It should be noted that the directory structure matters.
+
+### system overlay
+
+To overlay a file over system, the droid-system-overlay can be used
+
+	(device)# mkdir -p /usr/lib/droid-system-overlay
+
+and the your files can be added here. take [this](https://github.com/droidian-devices/adaptation-fxtec-pro1x/tree/bookworm/sparse/usr/lib/droid-system-overlay) as a reference.
+
+It should be noted that the directory structure matters.
+
+### Bluetooth crashing
+
+Bluetooth might crash because of missing MAC Address. To make the bluetooth service ignore it this hack can be used
+
+	(device)# mkdir -p /var/lib/bluetooth/
+	(device)# touch /var/lib/bluetooth/board-address
+
+For a proper solution, a `droid-get-bt-address.sh` script which fetches the correct address should be created.
+
+An example of this solution can be found at [here](https://github.com/droidian-sargo/adaptation-droidian-sargo/blob/bookworm/usr/bin/droid/droid-get-bt-address.sh) for Qualcomm's
+and [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/usr/bin/droid/droid-get-bt-address.sh) for Mediatek's.
+
+### Audio adjusting not working
+
+on Mediatek devices, pulseaudio requires a custom configuration file which can be found [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/etc/pulse/arm_droid_card_custom.pa).
+
+### Custom hostname
+
+To set a custom hostname on boot, a preferred hostname file can be created
+
+	(device)# mkdir -p /var/lib/droidian/
+	(device)# nano preferred_hostname
+
+And put your device model or codename without any spaces
+
+### Kernel modules
+
+`systemd-modules-load` doesn't load the modules on Mediatek. [This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service to some similar implementation can be included to load all the correct modules and get Wi-Fi working.
