@@ -268,8 +268,7 @@ respawned by the android init automatically.
 
 ### Make the Phosh service wait some seconds before start-up
 
-Sometimes Phosh might attempt its startup even when the Android composer service is not
-ready (even if it signals so itself).
+Sometimes Phosh might attempt its startup even when the Android composer service is not ready (even if it signals so itself).
 
 This is a bug, and you can workaround that by making the phosh service (which starts the compositor) wait some seconds:
 
@@ -285,6 +284,30 @@ ExecStartPre=/usr/bin/sleep 5
 ```
 
 Save and reboot.
+
+### Vendor is not mounted
+
+It is possible that the vendor partition doesn't get mounted by init and as a result the Halium contianer cannot start much of the services.
+
+First off check if the vendor image is mounted
+
+	(device)# ls /vendor
+
+If it's empty then it is not mounted by init. Try mounting it manually by finding the partition in `/dev/disk/by-partlabel` and `/dev/block/bootdevice/by-name`.
+
+If it is not there then you'll need to search `/dev` for your vendor partition.
+
+Then to test it out, in `/var/lib/lxc/android/pre-start.sh` add the following under the `# Halium 9` section
+
+```
+mkdir -p /var/lib/lxc/android/rootfs/vendor
+mount /dev/mmcblk0pYOURVENDOR /vendor
+mount --bind /vendor /var/lib/lxc/android/vendor
+```
+
+And reboot
+
+Make sure to come back to this issue later to find a proper solution.
 
 Tips for when the system is up with Phosh
 -----------------------------------------
