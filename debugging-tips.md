@@ -302,12 +302,22 @@ Then to test it out, in `/var/lib/lxc/android/pre-start.sh` add the following un
 ```
 mkdir -p /var/lib/lxc/android/rootfs/vendor
 mount /dev/mmcblk0pYOURVENDOR /vendor
-mount --bind /vendor /var/lib/lxc/android/vendor
+mount --bind /vendor /var/lib/lxc/android/rootfs/vendor
 ```
 
 And reboot
 
 Make sure to come back to this issue later to find a proper solution.
+
+### Long boot times
+
+If you are encountering long boot times, you can try inspecting kernel logs and check what process was keeping the system from booting up
+
+	(device)# dmesg
+
+To figure out which part of the boot process is causing the issue
+
+	(device)# systemd-analyze
 
 Tips for when the system is up with Phosh
 -----------------------------------------
