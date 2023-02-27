@@ -309,6 +309,17 @@ And reboot
 
 Make sure to come back to this issue later to find a proper solution.
 
+### lxc@android and phosh started but no output
+
+If phosh and lxc@android have started with udev rules in plcae but there is no output on the screen, it is possible that vndservicemanager is crashing.
+
+On Halium 11 and some Halium 10 devices, a patched version of vndservicemanager has to be used. a patched version of vndservicemanager can be found [here](https://github.com/droidian-starqlte/adaptation-droidian-starqlte/blob/bookworm/usr/lib/droid-vendor-overlay/bin/vndservicemanager).
+
+	(device)# mkdir -p /usr/lib/droid-vendor-overlay/bin/
+	(device)# cp vndservicemanager /usr/lib/droid-vendor-overlay/bin/
+
+Reboot
+
 ### Long boot times
 
 If you are encountering long boot times, you can try inspecting kernel logs and check what process was keeping the system from booting up
@@ -394,7 +405,7 @@ Bluetooth might fail to appear in `gnome-control-center` for various reasons.
 It can be tested with `bluetoothctl` or `blueman`
 
 	(device)$ bluetoothctl
-	[bluetooth]# help
+	[bluetooth]# scan on
 
 or to install blueman
 
@@ -421,7 +432,19 @@ And put your device model or codename without any spaces.
 
 Some devices have an some HID interfaces which are not used by Droidian. These interfaces might get registered as things such as keyboard or mouse.
 
-As a result you might see a cursor on the screen for no obvious reason. 
+As a result you might see a cursor on the screen for no obvious reason.
+
+To find information about the input device, `libinput-tools` can be installed and used
+
+	(device)# apt install libinput-tools
+
+To get a list of all devices
+
+	(device)# libinput list-devices
+
+To monitor inputs
+
+	(device)# libinput debug-events
 
 To hide this event node a udev rule can be added
 
@@ -429,4 +452,4 @@ To hide this event node a udev rule can be added
 
 to `/etc/udev/rules.d/71-hide.rules`.
 
-Make sure to adapt the event node in this line and reboot.
+Make sure to adapt the event node in this line from `event1` to your input device and reboot.

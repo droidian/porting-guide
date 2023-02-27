@@ -278,6 +278,11 @@ For Bluetooth these options are required
 CONFIG_BT=y
 CONFIG_BT_HIDP=y
 CONFIG_BT_RFCOMM=y
+CONFIG_BT_RFCOMM_TTY
+CONFIG_BT_BNEP=y
+CONFIG_BT_BNEP_MC_FILTER=y
+CONFIG_BT_BNEP_PROTO_FILTER=y
+CONFIG_BT_HCIVHCI=y
 ```
 
 For Waydroid
@@ -289,6 +294,16 @@ CONFIG_CGROUP_NET_CLASSID=y
 CONFIG_VETH=y
 CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
 CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder"
+```
+
+For Plymouth (boot animation)
+
+```
+# CONFIG_FB_SYS_FILLRECT is not set
+# CONFIG_FB_SYS_COPYAREA is not set
+# CONFIG_FB_SYS_IMAGEBLIT is not set
+# CONFIG_FB_SYS_FOPS is not set
+# CONFIG_FB_VIRTUAL is not set
 ```
 
 To ease debugging, pstore can be enabled to get logs on each boot
