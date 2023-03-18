@@ -419,8 +419,8 @@ on MediaTek devices, pulseaudio requires a custom configuration file which can b
 
 To set a custom hostname on boot, a preferred hostname file can be created
 
-	(device)# mkdir -p /var/lib/droidian/
-	(device)# nano preferred_hostname
+	(device)# mkdir -p /usr/lib/droidian/device/
+	(device)# nano preferred-hostname
 
 And put your device model or codename without any spaces.
 
@@ -453,3 +453,14 @@ To hide this event node a udev rule can be added
 to `/etc/udev/rules.d/71-hide.rules`.
 
 Make sure to adapt the event node in this line from `event1` to your input device and reboot.
+
+### Encryption support
+
+To test out encryption first create an empty file in `/usr/lib/droidian/device/encryption-supported` then open the encryption app.
+
+
+	(device)# mkdir -p /usr/lib/droidian/device/
+	(device)# touch /usr/lib/droidian/device/encryption-supported
+
+
+If after enabling encryption device can be unlocked without any issues then keep the file. else remove it
