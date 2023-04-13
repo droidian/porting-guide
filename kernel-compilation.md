@@ -354,6 +354,16 @@ The `RELENG_HOST_ARCH` variable is required when cross-building.
 
 If everything goes well, you'll find the resulting packages in `$PACKAGES_DIR`.
 
+DTB/DTBO compilation failure
+----------------------------
+
+In case of DTB/DTBO compilation failure it is a good idea to try using an external dtc compiler instead of the one presend in the kernel tree.
+
+To do so after building the control file, add `device-tree-compiler` to Build-Depends then and in `debian/rules` after the include line add
+
+`BUILD_COMMAND := $(BUILD_COMMAND) DTC_EXT=/usr/bin/dtc`
+
+
 Obtaining the boot image
 ------------------------
 

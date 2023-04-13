@@ -1,5 +1,6 @@
 Debugging tips
 ==============
+
 A set of tips and fixes that might help you debug the issues of your port of Droidian.
 
 Table of contents
@@ -67,6 +68,13 @@ your kernel (or otherwise remove it from the bootimage using tools like yabit or
 Android Image Kitchen).
 
 If your device reboots immediately, you should try the these few systemd sections
+
+### initramfs not finding the userdata partition
+If device gets stuck in initramfs (you'll see Failed to boot in dmesg of your host), one possibility is that initramfs cannot find the userdata partition.
+
+To fix this `datapart=` can be added to the cmdline. 
+
+The value of datapart should be either `/dev/disk/by-partlabel/userdata` or the exact label and number of that partition such as `/dev/sda23` (which is device specific).
 
 ### (generic rootfs only) Mask journald
 

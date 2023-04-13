@@ -1,5 +1,6 @@
 Rootfs creation
 ===============
+
 To make the installation easier and more consistent we build device specific rootfs images.
 
 Table of contents
@@ -30,14 +31,25 @@ Prerequisites
 * Device specific files
 * Docker
 
+Dependencies
+------------
+
+dpkg-dev gpg git and apt-utils are required to be installed on your host
+
+	(host)# apt update && apt install dpkg-dev gpg apt-utils
+
 Package creation
 ----------------
 
 First clone into the droidian build tools repository
 
-	(host)$ git clone https://github.com/droidian-releng/droidian-build-tools/ && cd droidian-build-tools
+	(host)$ git clone https://github.com/droidian-releng/droidian-build-tools/ && cd droidian-build-tools/bin
 
 Now create a template for your device. of course replace vendor, codename, ARCH and APIVER
+
+APIVER can be 28, 29 or 30 depending on which Android version you're using as your base
+
+ARCH can be either arm64, armhf or amd64
 
 	(host)$ ./droidian-new-device -v vendor -n codename -c ARCH -a APIVER -r phone -d droidian
 
@@ -47,21 +59,21 @@ As you will be building for a device with another architecture, you must initial
 
 Go to the newly created adaptation directory
 
-	(host)$ cd ~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/
+	(host)$ cd droidian/vendor/codename/packages/adaptation-vendor-codename/
 
 Now put all your device specific files under `sparse/` with a linux directory structure
 
-Make sure to put your repository's URL in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list` with this format
+Make sure to put your repository's URL in `~/droidian-build-tools/bin/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list` with this format
 
 `deb [signed-by=/usr/share/keyrings/codename.gpg] https://YOURREPO.TLD bookworm main`
 
-Then copy your gpg file to `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/share/keyrings/codename.gpg`. Make sure to replace codename.
+Then copy your gpg file to `~/droidian-build-tools/bin/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/share/keyrings/codename.gpg`. Make sure to replace codename.
 
 After copying all your files build the deb package
 
-	(host)$ ~/droidian-build-tools/droidian-build-package
+	(host)$ ~/droidian-build-tools/bin/droidian-build-package
 
-Make sure to copy all the files from `~/droidian-build-tools/droidian/vendor/codename/droidian/apt` to the repository you specified in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list`
+Make sure to copy all the files from `~/droidian-build-tools/bin/droidian/vendor/codename/droidian/apt` to the repository you specified in `~/droidian-build-tools/bin/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list`
 
 Now at this point you can use `package-sideload-create` on your droidian device to create a recovery flashable package from those two deb packages.
 

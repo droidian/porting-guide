@@ -1,5 +1,6 @@
 Image creation
 ==============
+
 Devices released before the treble/GSI move require a system image to be built because the default image will not provide the required libraries to the system.
 
 Table of contents
