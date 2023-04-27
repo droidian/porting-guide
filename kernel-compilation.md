@@ -208,11 +208,46 @@ FLASH_INFO_MODEL = QX1000
 FLASH_INFO_CPU = Qualcomm Technologies, Inc MSM8998
 ```
 
-### control file
+### Toolchains
 
-In case of a missing package error for python2, you can replace Build-Depends entry for `python2` to `python-is-python3`.
+Droidian ships
 
-You can also add any extra package which might be required for your device to Build-Depends. 
+* gcc 4.9 (legacy kernels)
+* clang-android-6.0-4691093 (recommended toolchain for android9)
+* clang-android-9.0-r353983c (recommended toolchain for android10)
+* clang-android-10.0-r370808 (recommended toolchain for android11)
+
+To use `clang-android-6.0-4691093` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
+
+`/usr/lib/llvm-android-6.0-4691093`
+
+To use `clang-android-9.0-r353983c` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
+
+`/usr/lib/llvm-android-9.0-r353983c`
+
+To use `clang-android-10.0-r370808` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
+
+`/usr/lib/llvm-android-10.0-r370808`
+
+In case you're on an older device and your kernel does not compile with any of the clang toolchains you can fallback to GCC
+
+To use GCC change `BUILD_CC` to from `clang` to `aarch64-linux-android-gcc-4.9`
+
+Keep in mind that any kernel newer than 4.4 should should compile fine with clang. there are always exceptions.
+
+### Build target
+
+Build target is passed to `make` which tells the make command what we expect at the end of the build.
+
+Default build target is `Image.gz` which generates an image and adds the dtb image after making the gzip archive.
+
+`Image-dtb.gz` can also be used for older devices that require the DTB appended to the end of the kernel.
+
+`Image` is also available if your device requires a prebuilt dt
+
+For devices with a prebuilt dt image, take a look at [this implementation](https://github.com/Exynos7880-Linux/linux-android-samsung-a5y17lte/blob/bookworm/debian/rules#L8-L37)
+
+You can find which build target is required for your device by looking at the device tree of your device.
 
 ### initramfs hooks
 

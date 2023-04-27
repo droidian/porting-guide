@@ -18,16 +18,14 @@ When porting a new device, you might (will) encounter some issues.
 It's unlikely that everything will work fine at first boot, so strap in,
 read this document twice and enjoy your ride.
 
-Tips marked with **(generic rootfs only)** are useful/applicable only on
-Droidian installations installed via the generic rootfs .zip flashed via recovery (note
-that this document assumes TWRP as the recovery used).
+Note that that this document assumes TWRP as the recovery used.
 
 Pre boot tips
 -------------
 
 These things are worth checking first:
 
-### (generic rootfs only) Check size of the Droidian rootfs
+### Check size of the Droidian rootfs
 
 Some recoveries might fail in resizing the Droidian rootfs. This will in turn
 break the boot process (and eventual feature bundles installation) due to the
@@ -42,7 +40,7 @@ if the image size is not 8GB, you can attempt resizing it manually:
 	(recovery)$ e2fsck -fy /data/rootfs.img
 	(recovery)$ resize2fs -f /data/rootfs.img 8G
 
-### (generic rootfs only) Install devtools
+### Devtools
 
 Stable Droidian releases require the installation of the devtools feature bundle
 to get useful tools to aid debugging, including an SSH server and tools required
@@ -50,8 +48,6 @@ to expose it via RNDIS.
 
 Devtools will also force the systemd journal to be flushed to disk, so that eventual
 logs might be looked for in recovery.
-
-### (generic rootfs only) Try a nightly release
 
 Nightly releases embed devtools on the rootfs. If you have trouble installing devtools
 on a stable release, consider trying a nightly image so that you don't need to install
@@ -76,9 +72,9 @@ To fix this `datapart=` can be added to the cmdline.
 
 The value of datapart should be either `/dev/disk/by-partlabel/userdata` or the exact label and number of that partition such as `/dev/sda23` (which is device specific).
 
-### (generic rootfs only) Mask journald
+### Mask journald
 
-Some devices have trouble with systemd-journald. You might try masking it via recovery.
+Some devices have trouble with systemd-journald (notably the Exynos 9810 and Exynos 9820 devices). You might try masking it via recovery.
 
 Note that masking journald will disable log collection, so other issues will be harder to debug.
 
@@ -88,7 +84,7 @@ Note that masking journald will disable log collection, so other issues will be 
 	(recovery)$ export PATH=/usr/bin:/usr/sbin
 	(recovery)$ systemctl mask systemd-journald
 
-### (generic rootfs only) Check systemd journal for clues
+### Check systemd journal for clues
 
 If you haven't masked journald, and have devtools (or a nightly image) installed, you can check the systemd journal:
 
@@ -104,9 +100,9 @@ It should also be noted that you should check the pstore section of the [kernel 
 
 If you have devtools installed (or have flashed a nightly image) but still don't have working RNDIS, these tips might help you:
 
-### (generic rootfs only) Mask resolved and timesyncd
+### Mask resolved and timesyncd
 
-Some kernels (exynos kernels are known to have this issue) have trouble with the kernel namespaces systemd creates to run some
+Some kernels (Exynos kernels are known to have this issue) have trouble with the kernel namespaces systemd creates to run some
 daemons, like timesyncd and resolved. This might make the boot process hang.
 
 You might try masking those two services via a recovery shell:
@@ -118,9 +114,7 @@ You might try masking those two services via a recovery shell:
 	(recovery)$ systemctl mask systemd-resolved
 	(recovery)$ systemctl mask systemd-timesyncd
 
-**If this worked, re-check your kernel configuration. See the section above.**
-
-### (generic rootfs only) Disable the Halium container
+### Disable the Halium container
 
 Some vendor scripts might conflict with the usb-tethering script used to set-up the RNDIS connection.
 
@@ -138,7 +132,7 @@ Comment the ExecStartPre and ExecStart lines, add
 
 save, sync and reboot
 
-### (generic rootfs only) Setup connection via WLAN
+### Setup connection via WLAN
 
 You might try pre-configuring your WLAN device and attempt getting in via WLAN rather than RNDIS:
 
@@ -434,7 +428,9 @@ And put your device model or codename without any spaces.
 
 ### Kernel modules
 
-`systemd-modules-load` doesn't load the modules on MediaTek. [This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service or some similar implementation can be included to load all the correct modules and get Wi-Fi working.
+`systemd-modules-load` doesn't load the modules on some MediaTek devices (module kernel version mismatch etc).
+
+[This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service or some similar implementation can be included to load all the correct modules and get Wi-Fi working.
 
 ### Cursor on the screen
 
