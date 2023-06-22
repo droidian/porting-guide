@@ -468,3 +468,19 @@ To test out encryption first create an empty file in `/usr/lib/droidian/device/e
 
 
 If after enabling encryption device can be unlocked without any issues then keep the file. else remove it
+
+### Camera support
+
+In case of camera not functioning on the target device, it would be a good idea to check if [this commit](https://github.com/droidian-devices/linux-android-xiaomi-lavender/commit/a6218388caa8716fff413dc6c9d88b73be426362) is present in your kernel.
+
+It is known to break camera on devices. if it is present, it should be reverted in the kernel.
+
+Both of Droidian's camera stacks should be tested. one is gst-droid available as pinhole and the other is aal available as droidian-camera
+
+To install gst-droid:
+
+	(device)# apt install pinhole -y
+
+to install droidian-camera:
+
+	(device)# apt install droidian-camera -y

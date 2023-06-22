@@ -88,9 +88,9 @@ And create the skeleton packaging:
 	(docker)# echo "3.0 (native)" > debian/source/format
 	(docker)# cat > debian/rules <<EOF
 	#!/usr/bin/make -f
-	
+
 	include /usr/share/linux-packaging-snippets/kernel-snippet.mk
-	
+
 	%:
 		dh \$@
 	EOF
@@ -282,6 +282,8 @@ Kernel adaptation
 
 As a bare minimum these options need to be enabled in your defconfig
 
+Some of these options might not be available to you depending on your kernel version, they can be safely ignored.
+
 ```
 CONFIG_DEVTMPFS=y
 CONFIG_VT=y
@@ -313,7 +315,7 @@ For Bluetooth these options are required
 CONFIG_BT=y
 CONFIG_BT_HIDP=y
 CONFIG_BT_RFCOMM=y
-CONFIG_BT_RFCOMM_TTY
+CONFIG_BT_RFCOMM_TTY=y
 CONFIG_BT_BNEP=y
 CONFIG_BT_BNEP_MC_FILTER=y
 CONFIG_BT_BNEP_PROTO_FILTER=y
@@ -380,11 +382,11 @@ First of all, (re)create the `debian/control` file:
 
 	(docker)# rm -f debian/control
 	(docker)# debian/rules debian/control
-	
+
 Now that everything is in place, you can start a build with `releng-build-package`:
 
 	(docker)# RELENG_HOST_ARCH="arm64" releng-build-package
-	
+
 The `RELENG_HOST_ARCH` variable is required when cross-building.
 
 If everything goes well, you'll find the resulting packages in `$PACKAGES_DIR`.
