@@ -42,7 +42,7 @@ if the image size is not 8GB, you can attempt resizing it manually:
 
 ### Devtools
 
-Stable Droidian releases require the installation of the devtools feature bundle
+Snapshot Droidian releases require the installation of the devtools feature bundle
 to get useful tools to aid debugging, including an SSH server and tools required
 to expose it via RNDIS.
 
@@ -50,7 +50,7 @@ Devtools will also force the systemd journal to be flushed to disk, so that even
 logs might be looked for in recovery.
 
 Nightly releases embed devtools on the rootfs. If you have trouble installing devtools
-on a stable release, consider trying a nightly image so that you don't need to install
+on a snapshot release, consider trying a nightly image so that you don't need to install
 it separatedly.
 
 ### Double-check cmdline for the `systempart=` option
@@ -65,10 +65,17 @@ Android Image Kitchen).
 
 If your device reboots immediately, you should try the these few systemd sections
 
+### Booting to fastboot
+
+For an unknown reason, some devices fail to boot with an arm64 ramdisk (yggdrasil and sargo are prone to this issue)
+
+To use the armhf ramdisk for your device, [this](https://github.com/droidian-devices/linux-android-google-sargo/blob/droidian/debian/rules) `debian/rules` file should be used instead of the one used by default
+and `linux-initramfs-halium-generic:armhf` should be added to `debian/kernel-info.mk` then regenerate `debian/control` and rebuild the kernel.
+
 ### initramfs not finding the userdata partition
 If device gets stuck in initramfs (you'll see Failed to boot in dmesg of your host), one possibility is that initramfs cannot find the userdata partition.
 
-To fix this `datapart=` can be added to the cmdline. 
+To fix this `datapart=` can be added to the cmdline.
 
 The value of datapart should be either `/dev/disk/by-partlabel/userdata` or the exact label and number of that partition such as `/dev/sda23` (which is device specific).
 
@@ -173,7 +180,7 @@ The default password is `1234`.
 
 ### ssh saying system is still booting
 
-To make ssh ignore systemd complaining, [this service file](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.ssh-fix.service) can added in recovery
+To make ssh ignore systemd complaining, [this service file](https://github.com/droidian-devices/adaptation-droidian-angelica/blob/droidian/debian/adaptation-angelica-configs.ssh-fix.service) can added in recovery
 
 	(recovery)$ mkdir /tmp/mpoint
 	(recovery)$ mount /data/rootfs.img /tmp/mpoint
@@ -315,7 +322,7 @@ Make sure to come back to this issue later to find a proper solution.
 
 If phosh and lxc@android have started with udev rules in plcae but there is no output on the screen, it is possible that vndservicemanager is crashing.
 
-On Halium 11 and some Halium 10 devices, a patched version of vndservicemanager has to be used. a patched version of vndservicemanager can be found [here](https://github.com/droidian-starqlte/adaptation-droidian-starqlte/blob/bookworm/usr/lib/droid-vendor-overlay/bin/vndservicemanager).
+On some Halium 10 devices, a patched version of vndservicemanager might be used to have vndservicemanager start. a patched version of vndservicemanager can be found [here](https://github.com/droidian-devices/adaptation-droidian-starqlte/blob/droidian/usr/lib/droid-vendor-overlay/bin/vndservicemanager).
 
 	(device)# mkdir -p /usr/lib/droid-vendor-overlay/bin/
 	(device)# cp vndservicemanager /usr/lib/droid-vendor-overlay/bin/
@@ -337,23 +344,17 @@ Tips for when the system is up with Phosh
 
 ### Screen brightness
 
-On some Qualcomm devices, screen brightness is always set to 0 on boot. to work around this issue brightness can be set to maximum on each boot
+On some Qualcomm devices, screen brightness is always set to 0 on boot via hwcomposer. to work around this issue brightness can be set to maximum on each boot
 
 	(device)$ echo 2047 > /sys/class/leds/lcd-backlight/brightness
 
-It can also be set as a service to start at boot like [this service file](https://github.com/droidian-lavender/adaptation-droidian-lavender/blob/main/debian/adaptation-lavender-configs.brightness.service).
-
-On MediaTek devices, power button will stop working after being used once.
-
-[This hack](https://github.com/droidian-mt6765/garden_power_button_helper) or a hack close to it can be used for now.
-
-It should be compiled on the device itself or it can be cross compiled from a computer.
+It can also be set as a service to start at boot like [this service file](https://github.com/droidian-devices/adaptation-droidian-lavender/blob/droidian/debian/adaptation-lavender-configs.brightness.service).
 
 ### Brightness adjusting from drop down menu
 
 On some devices, vendor sets the wrong permission for the brightness sysfs node at boot so Phosh cannot access and modify it.
 
-A service like [this](https://github.com/droidian-onclite/adaptation-droidian-onclite/blob/main/debian/adaptation-onclite-configs.brightnessperm.service) can be used to set the correct permission or at least give the user droidian access to the sysfs node
+A service like [this](https://github.com/droidian-devices/adaptation-droidian-onclite/blob/droidian/debian/adaptation-onclite-configs.brightnessperm.service) can be used to set the correct permission or at least give the user droidian access to the sysfs node
 
 Make sure to replace the brightness node according to your needs.
 
@@ -364,9 +365,9 @@ Phosh might have the wrong scaling set. phoc.ini should be created to adjust it
 	(device)# mkdir -p /etc/phosh/
 	(device)# nano phoc.ini
 
-and put [phoc.ini](https://github.com/droidian-lavender/adaptation-droidian-lavender/blob/main/etc/phosh/phoc.ini)
+and put [phoc.ini](https://github.com/droidian-devices/adaptation-droidian-miatoll/blob/droidian/etc/phosh/phoc.ini)
 
-the value for `output:HWCOMPOSER-1` should be adjusted.
+the value for `output:HWCOMPOSER-1` can be adjusted as needed.
 
 ### vendor parititon overlay
 
@@ -384,7 +385,7 @@ To overlay a file over the system partition, `droid-system-overlay` directory ca
 
 	(device)# mkdir -p /usr/lib/droid-system-overlay
 
-and the your files can be added here. take [this](https://github.com/droidian-devices/adaptation-fxtec-pro1x/tree/bookworm/sparse/usr/lib/droid-system-overlay) as a reference.
+and the your files can be added here. take [this](https://github.com/droidian-devices/adaptation-fxtec-pro1x/tree/droidian/sparse/usr/lib/droid-system-overlay) as a reference.
 
 It should be noted that the directory structure matters.
 
@@ -397,8 +398,8 @@ Bluetooth might crash because of missing MAC Address. To make the bluetooth serv
 
 For a proper solution, a `droid-get-bt-address.sh` script which fetches the correct address should be created.
 
-An example of this solution can be found at [here](https://github.com/droidian-sargo/adaptation-droidian-sargo/blob/bookworm/usr/bin/droid/droid-get-bt-address.sh) for Qualcomm's
-and [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/usr/bin/droid/droid-get-bt-address.sh) for MediaTek's.
+An example of this solution can be found at [here](https://github.com/droidian-devices/adaptation-google-sargo/blob/droidian/usr/bin/droid/droid-get-bt-address.sh) or [here](https://github.com/droidian-devices/adaptation-droidian-oneplus3/blob/droidian/usr/bin/droid/droid-get-bt-address.sh) for Qualcomm's
+and [here](https://github.com/droidian-devices/adaptation-droidian-angelica/blob/droidian/usr/bin/droid/droid-get-bt-address.sh) for MediaTek's.
 
 ### Bluetooth not available in settings
 
@@ -413,9 +414,15 @@ or to install blueman
 
 	(device)# apt install blueman
 
+A new package called btscanner-gcc is also available in case settings does show the bluetooth section but no devices under that section
+
+	(device)# apt install btscanner-gcc
+
+Now bluetooth should be available after a reboot
+
 ### Audio adjusting not working
 
-on MediaTek devices, pulseaudio requires a custom configuration file which can be found [here](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/etc/pulse/arm_droid_card_custom.pa).
+on MediaTek devices, pulseaudio requires a custom configuration file which can be found [here](https://github.com/droidian-devices/adaptation-droidian-angelica/blob/droidian/etc/pulse/arm_droid_card_custom.pa).
 
 ### Custom hostname
 
@@ -425,12 +432,6 @@ To set a custom hostname on boot, a preferred hostname file can be created
 	(device)# nano preferred-hostname
 
 And put your device model or codename without any spaces.
-
-### Kernel modules
-
-`systemd-modules-load` doesn't load the modules on some MediaTek devices (module kernel version mismatch etc).
-
-[This](https://github.com/droidian-mt6765/adaptation-droidian-garden/blob/main/debian/adaptation-garden-configs.modules.service) service or some similar implementation can be included to load all the correct modules and get Wi-Fi working.
 
 ### Cursor on the screen
 
@@ -475,12 +476,40 @@ In case of camera not functioning on the target device, it would be a good idea 
 
 It is known to break camera on devices. if it is present, it should be reverted in the kernel.
 
-Both of Droidian's camera stacks should be tested. one is gst-droid available as pinhole and the other is aal available as droidian-camera
+Both of Droidian's camera stacks should be tested. one uses droidcamsrc available as pinhole and the other is aal available as droidian-camera.
 
-To install gst-droid:
+To install and use pinhole (which uses droidcamsrc):
 
 	(device)# apt install pinhole -y
 
 to install droidian-camera:
 
 	(device)# apt install droidian-camera -y
+
+### Waydroid cgroups error
+
+On some devices, waydroid will fail to start due to some cgroups issues. `systemd.unified_cgroup_hierarchy=0` can be added to kernel cmdline to work around this issue.
+
+### Force flashlight to use sysfs
+
+To force the flashlight daemon to use sysfs, an empty file in `/usr/lib/droidian/device/flashlightd-sysfs` can be created. sysfs tends to be faster on starting flashlight.
+
+### System performance
+
+On some Qualcomm devices (such as lavender and sargo), Android thermal engine service will slow down the system and keep cpu cores offline.
+
+This service can be disabled via a vendor overlay of android init files to disable the service. [These few lines](https://github.com/droidian-devices/adaptation-droidian-lavender/blob/droidian/usr/lib/droid-vendor-overlay/etc/init/init.target.rc#L226-229) can be taken as reference.
+
+### Noise during calls
+
+In case of voice calls being noisey, the value of `persist.audio.fluence.voicecall` can be adjusted using setprop. acceptable values are `true` and `false`
+
+	(device)# setprop persist.audio.fluence.voicecall false
+
+### Battery and suspend
+
+Traditional suspend is broken on Android kernels, as a result Droidian uses batman to allow for battery management which is enabled by default.
+
+Traditional suspend wakes up the device every now and then without actually suspending. this behaviour can be disabled with [this](https://github.com/droidian-devices/adaptation-droidian-starqlte/blob/droidian/usr/share/glib-2.0/schemas/10_disable-suspend.gschema.override) schema override file.
+
+Disabling it won't do any harm to the system as batman is the main daemon in charge of battery management on Droidian.

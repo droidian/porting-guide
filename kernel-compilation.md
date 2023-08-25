@@ -43,7 +43,7 @@ Debian toolchain.
 
 Using this method you can also compile and package mainline kernels.
 
-An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian-devices/linux-android-fxtec-pro1/tree/bookworm/debian).
+An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian-devices/linux-android-fxtec-pro1/tree/droidian/debian).
 
 Prerequisites
 -------------
@@ -62,17 +62,17 @@ you should create a new branch to house the Debian packaging.
 
 We're also assuming that you want the resulting packages in `~/droidian/packages`.
 
-Droidian tooling expects the kernel source to have a working git directory structure (be a kernel cloned from a git repository) and the branch to be named after the Debian codename, such as `bookworm`.
+Droidian tooling expects the kernel source to have a working git directory structure (be a kernel cloned from a git repository).
 
 	(host)$ KERNEL_DIR="$HOME/droidian/kernel/vendor/device"
 	(host)$ PACKAGES_DIR="$HOME/droidian/packages"
 	(host)$ mkdir -p $PACKAGES_DIR
 	(host)$ cd $KERNEL_DIR
-	(host)$ git checkout -b bookworm
+	(host)$ git checkout -b droidian
 
 Now it's time to fire up the Docker container.
 
-	(host)$ docker run --rm -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:bookworm-amd64 bash
+	(host)$ docker run --rm -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:trixie-amd64 bash
 
 Inside the Docker container, install the `linux-packaging-snippets`, that
 provides the example `kernel-info.mk` file.
@@ -138,6 +138,8 @@ will be 4.14.221
 * `KERNEL_IMAGE_WITH_DTB_OVERLAY` determines whether or not to build a dtbo file. if this option is set `KERNEL_IMAGE_DTB_OVERLAY` also needs to be set. if not an attempt to find it will occur.
 
 * `KERNEL_IMAGE_DTB_OVERLAY` is the path to the dtbo file which can be found in arch/YOURARCH/boot/dts/SOC/
+
+* `KERNEL_PREBUILT_DT` is available for devices with a prebuilt DT image (such as samsungs) and takes a path in the kernel tree.
 
 All these values can be viewed by extracting a boot image with unpackbootimg
 
@@ -216,6 +218,7 @@ Droidian ships
 * clang-android-6.0-4691093 (recommended toolchain for android9)
 * clang-android-9.0-r353983c (recommended toolchain for android10)
 * clang-android-10.0-r370808 (recommended toolchain for android11)
+* clang-android-12.0-r416183b (recommended toolchain for android12-12.1-13)
 
 To use `clang-android-6.0-4691093` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
@@ -229,11 +232,15 @@ To use `clang-android-10.0-r370808` add it to `DEB_TOOLCHAIN` and set `BUILD_PAT
 
 `/usr/lib/llvm-android-10.0-r370808`
 
+To use `clang-android-12.0-r416183b` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
+
+`/usr/lib/llvm-android-12.0-r416183b`
+
 In case you're on an older device and your kernel does not compile with any of the clang toolchains you can fallback to GCC
 
 To use GCC change `BUILD_CC` to from `clang` to `aarch64-linux-android-gcc-4.9`
 
-Keep in mind that any kernel newer than 4.4 should should compile fine with clang. there are always exceptions.
+Keep in mind that any kernel newer than 4.4 should should compile fine with clang, there are always exceptions.
 
 ### Build target
 
@@ -245,15 +252,13 @@ Default build target is `Image.gz` which generates an image and adds the dtb ima
 
 `Image` is also available if your device requires a prebuilt dt
 
-For devices with a prebuilt dt image, take a look at [this implementation](https://github.com/Exynos7880-Linux/linux-android-samsung-a5y17lte/blob/bookworm/debian/rules#L8-L37)
-
 You can find which build target is required for your device by looking at the device tree of your device.
 
 ### initramfs hooks
 
 In case of any issues with initramfs (as an example unl0kr showing a black screen while encryption is enabled), scripts can be added to the packaging which will be included in the ramdisk.
 
-[This packaging](https://github.com/droidian-devices/linux-android-fxtec-pro1x/blob/bookworm/debian/initramfs-overlay/scripts/halium-hooks) can be taken as a reference.
+[This packaging](https://github.com/droidian-devices/linux-android-fxtec-pro1x/blob/droidian/debian/initramfs-overlay/scripts/halium-hooks) can be taken as a reference.
 
 The following adds a function which will run in the initramfs on boot.
 
@@ -273,7 +278,7 @@ override_dh_strip:
 override_dh_makeshlibs:
 ```
 
-can be added to the end of `rules`.
+can be added to the end of `debian/rules`.
 
 It is recommended to come back and fix the build errors later on instead of ignoring them as they might cause various issues in the future.
 
@@ -362,7 +367,7 @@ After modifying your defconfig, copy `out/KERNEL_OBJ/.config` to `arch/YOURARCH/
 
 As an alternative, `KERNEL_CONFIG_USE_FRAGMENTS = 1` can be set in `kernel-info.mk` to include defconfig fragments inside your defconfig on build time.
 
-defconfig fragments should be placed in the root of the kernel source in a directory called droidian. [this source](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/bookworm/droidian) can be taken as a reference.
+defconfig fragments should be placed in the root of the kernel source in a directory called droidian. [this source](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/droidian/droidian) can be taken as a reference.
 
 `KERNEL_CONFIG_USE_DIFFCONFIG` can be enabled to use the python script `diffconfig` to compare fragments and the main defconfig.
 
@@ -400,7 +405,6 @@ To do so after building the control file, add `device-tree-compiler` to Build-De
 
 `BUILD_COMMAND := $(BUILD_COMMAND) DTC_EXT=/usr/bin/dtc`
 
-
 Obtaining the boot image
 ------------------------
 
@@ -424,4 +428,4 @@ When you're happy with the kernel, be sure to commit your changes as well as the
 * debian/compat
 * debian/kernel-info.mk
 
-...and then push your `bookworm` branch for others to enjoy.
+...and then push your `droidian` branch for others to enjoy.
