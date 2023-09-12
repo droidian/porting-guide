@@ -513,3 +513,11 @@ Traditional suspend is broken on Android kernels, as a result Droidian uses batm
 Traditional suspend wakes up the device every now and then without actually suspending. this behaviour can be disabled with [this](https://github.com/droidian-devices/adaptation-droidian-starqlte/blob/droidian/usr/share/glib-2.0/schemas/10_disable-suspend.gschema.override) schema override file.
 
 Disabling it won't do any harm to the system as batman is the main daemon in charge of battery management on Droidian.
+
+### MTP
+
+MTP support is available since trixie and can be enabled with
+
+	(device)# touch /usr/lib/droidian/device/mtp-supported
+
+Now MTP can be enabled from settings after a reboot.
