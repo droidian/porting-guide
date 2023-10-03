@@ -492,7 +492,17 @@ On some devices, waydroid will fail to start due to some cgroups issues. `system
 
 ### Force flashlight to use sysfs
 
-To force the flashlight daemon to use sysfs, an empty file in `/usr/lib/droidian/device/flashlightd-sysfs` can be created. sysfs tends to be faster on starting flashlight.
+To force the flashlight daemon to use sysfs, an empty file with the name `/usr/lib/droidian/device/flashlightd-sysfs` can be created. sysfs tends to be faster on starting flashlight.
+
+### Add sysfs flashlight node
+
+To add a sysfs flashlight nodes, a comma separated file at `/usr/lib/droidian/device/flashlightd-sysfs-nodes`
+
+The syntax looks like the following
+
+```
+/path/to/node,/path/to/node2
+```
 
 ### System performance
 
