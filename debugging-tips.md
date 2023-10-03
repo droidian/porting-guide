@@ -531,3 +531,11 @@ MTP support is available since trixie and can be enabled with
 	(device)# touch /usr/lib/droidian/device/mtp-supported
 
 Now MTP can be enabled from settings after a reboot.
+
+### Cutout and punch hole fixes
+
+Droidian will attempt to automatically generate config files on startup to fix issues of cutout and punch holes
+
+In case the info is not generated or not usable for any reason, a custom version can be added at `/usr/lib/droidian/device/phosh-notch/halium.json`.
+
+Refer to [gmobile documentation](https://phosh.mobi/posts/notch-support/) for more info on how to generate a correct json file manually.
