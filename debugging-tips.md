@@ -79,6 +79,10 @@ To fix this `datapart=` can be added to the cmdline.
 
 The value of datapart should be either `/dev/disk/by-partlabel/userdata` or the exact label and number of that partition such as `/dev/sda23` (which is device specific).
 
+### initramfs refusing to find /init on target filesystem
+Halium requires to have console= to be a console device. For some devices default cmdline extracted from stock boot image might have console= boot argument that conflicts with what halium expects, in that case halium will refuse to start /init.
+If your device restarts right after booting the kernel and your boot cmdline has something like "console=ttyMSM0,115200n8" replace it with "console=tty0" and rebuild kernel.
+
 ### Mask journald
 
 Some devices have trouble with systemd-journald (notably the Exynos 9810 and Exynos 9820 devices). You might try masking it via recovery.
