@@ -218,7 +218,8 @@ Droidian ships
 * clang-android-6.0-4691093 (recommended toolchain for android9)
 * clang-android-9.0-r353983c (recommended toolchain for android10)
 * clang-android-10.0-r370808 (recommended toolchain for android11)
-* clang-android-12.0-r416183b (recommended toolchain for android12-12.1-13)
+* clang-android-12.0-r416183b (recommended toolchain for android12-12.1)
+* clang-android-14.0-r450784d (recommended toolchain for android13)
 
 To use `clang-android-6.0-4691093` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
@@ -235,6 +236,10 @@ To use `clang-android-10.0-r370808` add it to `DEB_TOOLCHAIN` and set `BUILD_PAT
 To use `clang-android-12.0-r416183b` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
 `/usr/lib/llvm-android-12.0-r416183b`
+
+To use `clang-android-14.0-r450784d` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
+
+`/usr/lib/llvm-android-14.0-r450784d`
 
 In case you're on an older device and your kernel does not compile with any of the clang toolchains you can fallback to GCC
 
