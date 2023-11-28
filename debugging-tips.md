@@ -263,11 +263,10 @@ then check `/tmp/lxclog`.
 
 ### Re-generate udev rules
 
-If the container is running, but you still haven't booted up to UI, you might try
-regenerating the udev rules (snippet from the [UBports halium-9 porting notes](https://github.com/ubports/porting-notes/wiki/Halium-9#generating-udev-rules))
+If the container is running, but you still haven't booted up to UI, you might try regenerating the udev rules
 
 	(device)# DEVICE=codename # replace with your device codename
-	(device)# cat /var/lib/lxc/android/rootfs/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' >/etc/udev/rules.d/70-$DEVICE.rules
+	(device)# cat /var/lib/lxc/android/rootfs/ueventd*.rc /var/lib/lxc/android/rootfs/system/etc/ueventd*.rc /vendor/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' >/etc/udev/rules.d/70-$DEVICE.rules
 
 Then reboot.
 
