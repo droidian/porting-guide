@@ -223,23 +223,23 @@ Droidian ships
 
 To use `clang-android-6.0-4691093` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
-`/usr/lib/llvm-android-6.0-4691093`
+`/usr/lib/llvm-android-6.0-4691093/bin`
 
 To use `clang-android-9.0-r353983c` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
-`/usr/lib/llvm-android-9.0-r353983c`
+`/usr/lib/llvm-android-9.0-r353983c/bin`
 
 To use `clang-android-10.0-r370808` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
-`/usr/lib/llvm-android-10.0-r370808`
+`/usr/lib/llvm-android-10.0-r370808/bin`
 
 To use `clang-android-12.0-r416183b` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
-`/usr/lib/llvm-android-12.0-r416183b`
+`/usr/lib/llvm-android-12.0-r416183b/bin`
 
 To use `clang-android-14.0-r450784d` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
 
-`/usr/lib/llvm-android-14.0-r450784d`
+`/usr/lib/llvm-android-14.0-r450784d/bin`
 
 In case you're on an older device and your kernel does not compile with any of the clang toolchains you can fallback to GCC
 
@@ -253,7 +253,7 @@ Build target is passed to `make` which tells the make command what we expect at 
 
 Default build target is `Image.gz` which generates an image and adds the dtb image after making the gzip archive.
 
-`Image-dtb.gz` can also be used for older devices that require the DTB appended to the end of the kernel.
+`Image.gz-dtb` can also be used for older devices that require the DTB appended to the end of the kernel.
 
 `Image` is also available if your device requires a prebuilt dt
 
