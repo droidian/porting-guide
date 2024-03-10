@@ -52,7 +52,7 @@ Prerequisites
 * A Halium-compliant kernel defconfig
 * Docker
 
-If you do not have a Halium-compliant kernel yet you should modify your kernel's configuration as suggested in [Kernel adaptation](#kernel-adaptation) later in the guide.
+If you do not have a Halium-compliant kernel yet you should modify your kernel's configuration as suggested in [Kernel adaptation](#kernel-adaptation) later in the guide. Before doing this **make sure your kernel sources can be built and can boot Android**.
 
 Package bring-up
 ----------------
