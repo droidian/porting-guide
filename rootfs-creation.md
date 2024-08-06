@@ -108,6 +108,22 @@ If everything builds fine you should have your LVM fastboot flashable rootfs ima
 Automating nightly images
 -------------------------
 
-You can automate your builds with GitHub actions to generate new images every day for your device with your changes. Take [this actions yml file](https://github.com/droidian-onclite/droidian-images/blob/bookworm/.github/workflows/release.yml) as an example.
+You can automate your builds with GitHub Actions to generate new images every day for your device with your changes. Take [this actions yml file](https://github.com/droidian-onclite/droidian-images/blob/bookworm/.github/workflows/release.yml) as an example.
 
-You can replicate nightly builds by replacing the values in `community_devices.yml` and files in `apt/`.
+To set up nightly builds:
+
+**Fork the Repositories:**
+- Fork the Droidian Images repository: [droidian-images/droidian](https://github.com/droidian-images/droidian).
+- Fork the rootfs template repository (optional): [droidian-releng/rootfs-templates](https://github.com/droidian-releng/rootfs-templates).
+
+**Create `community_devices.yml`:**
+- In your forked Droidian Images repository, create `community_devices.yml` to include your device. Use an existing device entry in `devices.yml` as a reference.
+> Note: Using `community_devices.yml` is recommended as it makes merging from upstream repo easier.
+
+**Add Device Packages:**
+- **Using `pre-overlay/` Directory:** Add your APT source files to `pre-overlay/etc/apt/sources.list.d/` in your Droidian Images repository.
+- **Using Rootfs Template (Alternative):** If not using the `pre-overlay/` directory, add your APT source files to `apt/etc/apt/sources.list.d/`in your forked rootfs template. Update the `.gitmodules` file in your Droidian Images repo fork to point to your forked rootfs template.
+- **Using `apt/` Directory (Alternative):** Add your device packages files and their release files to the `apt/` directory in your Droidian Images fork repository. This method is used if you don’t have a dedicated deb package repository.
+
+**Trigger the Workflow:**
+- Start the workflow in your Droidian Images fork repository to begin generating nightly images.
