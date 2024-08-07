@@ -78,6 +78,7 @@ Make sure to copy all the files from `~/droidian-build-tools/bin/droidian/vendor
 Now at this point you can use `package-sideload-create` on your droidian device to create a recovery flashable package from those two deb packages.
 
 After copying the deb files to your personal repository, add that repository to your device by adding the sources list file to your device then do
+> Refer to our [guide](./host-package-repo.md) on hosting a package repository for detailed instructions.
 
 	(device)# apt update
 	(device)# package-sideload-create adaptation-droidian-codename.zip adaptation-vendor-codename adaptation-vendor-codename-configs
@@ -124,6 +125,8 @@ To set up nightly builds:
 - **Using `pre-overlay/` Directory:** Add your APT source files to `pre-overlay/etc/apt/sources.list.d/` in your Droidian Images repository.
 - **Using Rootfs Template (Alternative):** If not using the `pre-overlay/` directory, add your APT source files to `apt/etc/apt/sources.list.d/`in your forked rootfs template. Update the `.gitmodules` file in your Droidian Images repo fork to point to your forked rootfs template.
 - **Using `apt/` Directory (Alternative):** Add your device packages files and their release files to the `apt/` directory in your Droidian Images fork repository. This method is used if you don’t have a dedicated deb package repository.
+
+> Note: Hosting a package repo is recommended as it makes updating the packages easier on device. You can find instructions for hosting a repo [here](./host-package-repo.md).
 
 **Trigger the Workflow:**
 - Start the workflow in your Droidian Images fork repository to begin generating nightly images.

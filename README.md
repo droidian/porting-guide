@@ -20,6 +20,7 @@ Contents
   * [Kernel compilation](./kernel-compilation.md)
   * [Tips to aid debugging](./debugging-tips.md)
   * [Rootfs creation](./rootfs-creation.md)
+  * [Host package repo](./host-package-repo.md)
 
 Getting community help
 ----------------------
