@@ -187,6 +187,271 @@ iface wlan0 inet static
 
 **在继续之前，请阅读上一节，这些提示也可能有用。**
 
+**在继续之前，请阅读前一部分，这些提示可能也会有用。**
+
+**请注意，本节中的每个命令都需要 root 权限，除非明确说明**
+
+您可以使用以下命令启动一个 root shell：
+
+    (设备)$ sudo -i
+
+### USB 网络共享
+
+要将主机的网络连接与设备共享，您可以在主机上使用以下命令：
+
+    (主机)$ sudo sysctl net.ipv4.ip_forward=1
+    (主机)$ sudo iptables -t nat -A POSTROUTING -o $INTERNET -j MASQUERADE
+    (主机)$ sudo iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+    (主机)$ sudo iptables -A FORWARD -i $USB -o $INTERNET -j ACCEPT
+
+其中 `$USB` 是连接到设备的接口，通常是 `usb0`。
+
+`$INTERNET` 是连接到互联网的接口。
+
+然后在设备上运行以下命令：
+
+    (设备)$ sudo ip route add default via 10.15.19.100
+
+IP 地址 `10.15.19.100` 是您的主机地址。在运行命令之前请仔细检查。
+
+现在要访问互联网，请将 `/etc/resolv.conf` 的内容替换为 `nameserver 8.8.8.8`。
+
+### 卸载 schedtune
+
+要使 Droidian 正常工作，必须禁用 schedtune，但有些设备内核会对此发出警告。解决方法是在启动时卸载 schedtune：
+
+    (设备)# mkdir -p /etc/systemd/system/android-mount.service.d
+    (设备)# nano /etc/systemd/system/android-mount.service.d/10-schedtune.conf
+
+在文件中添加以下内容：
+
+```
+[Service]
+ExecStartPre=-/usr/bin/umount -l /sys/fs/cgroup/schedtune
+```
+
+保存并重启设备。
+
+### 确保 Halium 容器正在运行
+
+您可以使用以下命令检查 Halium 容器是否正在运行：
+
+    (设备)# lxc-ls --fancy
+
+### 手动启动 Halium 容器
+
+如果 Halium 容器没有运行，您可以尝试手动启动它：
+
+    (设备)# lxc-start -n android --logfile=/tmp/lxclog --logpriority=DEBUG
+
+然后检查 `/tmp/lxclog`。
+
+### 重新生成 udev 规则
+
+如果容器正在运行，但您仍未启动 UI，您可以尝试重新生成 udev 规则：
+
+    (设备)# DEVICE=codename # 替换为您的设备代号
+    (设备)# cat /var/lib/lxc/android/rootfs/ueventd*.rc /var/lib/lxc/android/rootfs/system/etc/ueventd*.rc /vendor/ueventd*.rc /var/lib/lxc/android/rootfs/vendor/etc/ueventd*.rc | grep ^/dev | sed -e 's/^\/dev\///' | awk '{printf "ACTION==\"add\", KERNEL==\"%s\", OWNER=\"%s\", GROUP=\"%s\", MODE=\"%s\"\n",$1,$3,$4,$2}' | sed -e 's/\r//' >/etc/udev/rules.d/70-$DEVICE.rules
+
+然后重启设备。
+
+### 检查 `test_hwcomposer` 是否正常工作
+
+尝试使用 `test_hwcomposer` 命令可能是检查 Android composer 是否正常工作的一个有效测试。
+
+注意，在 Halium 10/11 设备上，您可能需要在使用如 `test_hwcomposer` 或 `phoc` 客户端后重启 Android composer 服务。您可以杀死 `android.service.composer` 进程，它将由 android init 自动重启。
+
+### 使 Phosh 服务在启动前等待几秒钟
+
+有时 Phosh 可能会尝试启动，即使 Android composer 服务尚未准备好（即使它自己发出了信号）。
+
+这是一个 bug，您可以通过让 Phosh 服务（启动 compositor）等待几秒钟来解决：
+
+    (设备)# mkdir -p /etc/systemd/system/phosh.service.d/
+    (设备)# nano /etc/systemd/system/phosh.service.d/90-wait.conf
+
+并在文件中添加以下内容：
+
+```
+# FIXME
+[Service]
+ExecStartPre=/usr/bin/sleep 5
+```
+
+保存并重启设备。
+
+### Vendor 分区未挂载
+
+可能 Vendor 分区未被 init 挂载，导致 Halium 容器无法启动许多服务。
+
+首先检查 vendor 镜像是否已挂载：
+
+    (设备)# ls /vendor
+
+如果为空，则说明 init 未挂载。尝试通过查找 `/dev/disk/by-partlabel` 和 `/dev/block/bootdevice/by-name` 中的分区来手动挂载它。
+
+如果未找到，您需要在 `/dev` 中搜索您的 vendor 分区。
+
+然后，为了测试，在 `/var/lib/lxc/android/pre-start.sh` 中的 `# Halium 9` 部分下添加以下内容：
+
+```
+mkdir -p /var/lib/lxc/android/rootfs/vendor
+mount /dev/mmcblk0pYOURVENDOR /vendor
+mount --bind /vendor /var/lib/lxc/android/rootfs/vendor
+```
+
+然后重启设备。
+
+稍后请务必回到此问题以找到合适的解决方案。
+
+### lxc@android 和 phosh 已启动但没有输出
+
+如果 phosh 和 lxc@android 已经启动并且 udev 规则也已到位，但屏幕上没有输出，可能是 vndservicemanager 崩溃了。
+
+在某些 Halium 10 设备上，可能需要使用修补版本的 vndservicemanager 以使其启动。可以在 [这里](https://github.com/droidian-devices/adaptation-droidian-starqlte/blob/droidian/usr/lib/droid-vendor-overlay/bin/vndservicemanager) 找到修补版本的 vndservicemanager。
+
+    (设备)# mkdir -p /usr/lib/droid-vendor-overlay/bin/
+    (设备)# cp vndservicemanager /usr/lib/droid-vendor-overlay/bin/
+
+重启设备。
+
+### 长时间启动
+
+如果遇到长时间启动的问题，您可以尝试检查内核日志，查看哪个进程阻碍了系统启动：
+
+    (设备)# dmesg
+
+以找出导致启动问题的部分：
+
+    (设备)# systemd-analyze
+
+### 系统启动后的小贴士
+
+#### 屏幕亮度
+
+在某些 Qualcomm 设备上，屏幕亮度总是通过 hwcomposer 在启动时设置为 0。为了解决此问题，可以在每次启动时将亮度设置为最大值：
+
+    (设备)$ echo 2047 > /sys/class/leds/lcd-backlight/brightness
+
+也可以像 [这个服务文件](https://github.com/droidian-devices/adaptation-droidian-lavender/blob/droidian/debian/adaptation-lavender-configs.brightness.service) 一样，将其设置为在启动时自动启动。
+
+#### 下拉菜单中的亮度调节
+
+在某些设备上，vendor 在启动时为亮度 sysfs 节点设置了错误的权限，因此 Phosh 不能访问和修改它。
+
+可以使用类似 [这个服务](https://github.com/droidian-devices/adaptation-droidian-onclite/blob/droidian/debian/adaptation-onclite-configs.brightnessperm.service) 的服务来设置正确的权限，或者至少让用户 droidian 可以访问 sysfs 节点。
+
+确保根据需要替换亮度节点。
+
+#### Phosh 缩放
+
+Phosh 可能设置了错误的缩放比例。应创建 `phoc.ini` 来调整它：
+
+    (设备)# mkdir -p /etc/phosh/
+    (设备)# nano phoc.ini
+
+并放入 [phoc.ini](https://github.com/droidian-devices/adaptation-droidian-miatoll/blob/droidian/etc/phosh/phoc.ini)
+
+`output:HWCOMPOSER-1` 的值可以根据需要进行调整。
+
+#### Vendor 分区覆盖
+
+要覆盖 vendor 分区上的文件，可以使用 `droid-vendor-overlay` 目录：
+
+    (设备)# mkdir -p /usr/lib/droid-vendor-overlay
+
+然后可以在此处添加您的文件。可以参考 [这个](https://github.com/droidian-devices/adaptation-fxtec-pro1x/tree/bookworm/sparse/usr/lib/droid-vendor-overlay)。
+
+请注意，目录结构非常重要。
+
+#### 系统分区覆盖
+
+要覆盖系统分区上的文件，可以使用 `droid-system-overlay` 目录：
+
+    (设备)# mkdir -p /usr/lib/droid-system-overlay
+
+然后可以在此处添加您的文件。可以参考 [这个](https://github.com/droidian-devices/adaptation-fxtec-pro1x/tree/droidian/sparse/usr/lib/droid-system-overlay)。
+
+请注意，目录结构非常重要。
+
+#### 蓝牙崩溃
+
+蓝牙可能由于缺少 MAC 地址而崩溃。可以使用以下 hack 使蓝牙服务忽略此问题：
+
+    (设备)# mkdir -p /var/lib/bluetooth/
+    (设备)# touch /var/lib/bluetooth/board-address
+
+为了找到合适的解决方案，应该创建一个 `droid-get-bt-address.sh` 脚本来获取正确的地址。
+
+可以在
+
+ [这里](https://github.com/droidian-devices/adaptation-google-sargo/blob/droidian/usr/bin/droid/droid-get-bt-address.sh) 找到 Qualcomm 设备的示例解决方案，在 [这里](https://github.com/droidian-devices/adaptation-droidian-oneplus3/blob/droidian/usr/bin/droid/droid-get-bt-address.sh) 找到 MediaTek 设备的示例解决方案。
+
+#### 设置中没有蓝牙选项
+
+蓝牙可能由于各种原因未出现在 `gnome-control-center` 中。
+
+可以使用 `bluetoothctl` 或 `blueman` 进行测试：
+
+    (设备)$ bluetoothctl
+    [bluetooth]# scan on
+
+或者安装 `blueman`：
+
+    (设备)# apt install blueman
+
+如果设置中显示了蓝牙选项但没有设备，可以安装新的包 `btscanner-gcc`：
+
+    (设备)# apt install btscanner-gcc
+
+然后重启设备，蓝牙应该会出现。
+
+#### 音频调节无效
+
+在 MediaTek 设备上，pulseaudio 需要一个自定义配置文件，可以在 [这里](https://github.com/droidian-devices/adaptation-droidian-angelica/blob/droidian/etc/pulse/arm_droid_card_custom.pa) 找到。
+
+#### 自定义主机名
+
+要在启动时设置自定义主机名，可以创建一个首选主机名文件：
+
+    (设备)# mkdir -p /usr/lib/droidian/device/
+    (设备)# nano preferred-hostname
+
+并填写您的设备型号或代号，不要有空格。
+
+#### 屏幕上的光标
+
+一些设备有一些 Droidian 未使用的 HID 接口。这些接口可能被注册为键盘或鼠标等设备。
+
+因此，您可能会在屏幕上看到光标，但没有明显的原因。
+
+要获取输入设备的信息，可以安装并使用 `libinput-tools`：
+
+    (设备)# apt install libinput-tools
+
+列出所有设备：
+
+    (设备)# libinput list-devices
+
+监视输入事件：
+
+    (设备)# libinput debug-events
+
+要隐藏这个事件节点，可以在 `/etc/udev/rules.d/71-hide.rules` 中添加一个 udev 规则：
+
+`ACTION=="add|change", KERNEL=="event1", OWNER="root", GROUP="system", MODE="0666", ENV{LIBINPUT_IGNORE_DEVICE}="1"`
+
+确保根据您的输入设备调整事件节点，并重启设备。
+
+#### 加密支持
+
+要测试加密，首先在 `/usr/lib/droidian/device/encryption-supported` 中创建一个空文件，然后打开加密应用程序：
+
+    (设备)# mkdir -p /usr/lib/droidian/device/
+    (设备)# touch /usr/lib/droidian/device/encryption-supported
+
+如果启用加密后设备可以顺利解锁，则保留该文件。否则，请删除它。
+
 **注意：
 
 确保你的系统分区大小足够大。如果系统分区太小，可能会出现各种各样的问题。**
