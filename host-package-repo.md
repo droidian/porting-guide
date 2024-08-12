@@ -1,54 +1,54 @@
-# Hosting a Personal Droidian Package Repository on GitHub/GitLab Pages
+# 在 GitHub/GitLab Pages 上托管个人 Droidian 包仓库
 
-This guide explains how to set up and maintain a personal Droidian package repository using GitHub Pages or GitLab Pages.
+本指南解释了如何使用 GitHub Pages 或 GitLab Pages 设置和维护个人 Droidian 包仓库。
 
-## Steps for GitHub Pages
+## GitHub Pages 步骤
 
-1. Create a new GitHub repository.
+1. **创建一个新的 GitHub 仓库**。
 
-2. Add the workflow action file to `.github/workflows/main.yml`. You can find the content of this file [here](#github-action-yml)
+2. **添加工作流动作文件到 `.github/workflows/main.yml`**。您可以在 [这里](#github-action-yml) 找到此文件的内容。
 
->Note: The instructions assume you are using the `main` branch. If you are using a different branch, make sure to update the branch name in the GitHub Action file accordingly.
+> 注意：这些说明假定您使用的是 `main` 分支。如果您使用其他分支，请确保在 GitHub Action 文件中相应地更新分支名称。
 
-3. Add GPG-related secrets to your repository:
-   - Go to your repository's Settings > Secrets and variables > Actions
-   - Add new repository secrets:
+3. **将 GPG 相关的密钥添加到您的仓库中**：
+   - 转到仓库的设置 > 秘密和变量 > Actions
+   - 添加新的仓库秘密：
      - `GPG_KEY_ID`
      - `GPG_PASSPHRASE`
      - `GPG_PRIVATE_KEY`
 
-4. After the first run, a new branch `gh-pages` will be created
-   - Go to your repository's Settings > Pages
-   - Under "Build and deployment", select `Source` as `Deploy from a branch` and set the Branch to `gh-pages`
+4. **第一次运行后，将创建一个新的分支 `gh-pages`**：
+   - 转到仓库的设置 > Pages
+   - 在“构建和部署”下，选择 `Source` 为 `Deploy from a branch` 并将分支设置为 `gh-pages`
 
-## Steps for GitLab Pages (Alternative)
+## GitLab Pages 步骤（替代方案）
 
-1. Create a new GitLab repository.
+1. **创建一个新的 GitLab 仓库**。
 
-2. Add the `.gitlab-ci.yml` file to the root of your repository. You can find the content of this file [here](#gitlab-ci-yml).
+2. **将 `.gitlab-ci.yml` 文件添加到仓库的根目录**。您可以在 [这里](#gitlab-ci-yml) 找到此文件的内容。
 
->Note: The instructions assume you are using the `main` branch. If you are using a different branch, make sure to update the branch name in the GitLab CI configuration file accordingly.
+> 注意：这些说明假定您使用的是 `main` 分支。如果您使用其他分支，请确保在 GitLab CI 配置文件中相应地更新分支名称。
 
-3. Add GPG-related variables to your repository:
-   - Go to your repository's Settings > CI/CD > Variables
-   - Add new variables:
+3. **将 GPG 相关的变量添加到您的仓库中**：
+   - 转到仓库的设置 > CI/CD > Variables
+   - 添加新的变量：
      - `GPG_KEY_ID`
      - `GPG_PASSPHRASE`
-     - `GPG_PRIVATE_KEY` (use base64 encoded GPG private key)
+     - `GPG_PRIVATE_KEY`（使用 base64 编码的 GPG 私钥）
 
->Note: 
->1. Select visibilty as `Masked` while creating variables.
->2. GitLab doesn't support whitespace in their variables, so use a base64 encoded GPG private key for GitLab.
+> 注意：
+> 1. 创建变量时选择可见性为 `Masked`。
+> 2. GitLab 不支持变量中的空格，因此请使用 base64 编码的 GPG 私钥。
 
-## Usage
+## 使用方法
 
-To add new packages:
+要添加新包：
 
-1. Place `.deb` files in the `packages` directory of the repo.
-2. Commit and push to the `main` branch.
-3. The CI/CD pipeline will automatically update the repository and deploy to GitHub/GitLab Pages.
+1. 将 `.deb` 文件放置在仓库的 `packages` 目录中。
+2. 提交并推送到 `main` 分支。
+3. CI/CD 管道将自动更新仓库并部署到 GitHub/GitLab Pages。
 
-Your personal Droidian package repository will be available at:
+您的个人 Droidian 包仓库将可通过以下地址访问：
 - GitHub: `https://<username>.github.io/<repository-name>`
 - GitLab: `https://<username>.gitlab.io/<repository-name>`
 
