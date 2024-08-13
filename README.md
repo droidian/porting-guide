@@ -11,6 +11,11 @@ Droidian 的目标是使 Debian 能在 Android 手机上运行。
 
 对于没有 Android 9 移植的旧设备，不能移植到 Droidian 上。所以要么 Android 9，要么就没戏了！
 
+翻译
+----
+这个移植指南有以下语言版本：
+* [英语 (English)](https://github.com/droidian/porting-guide/tree/master)
+
 内容
 --------
 
