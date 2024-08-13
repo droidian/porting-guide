@@ -11,6 +11,12 @@ If your device is launched with Android 9 or above it is possible to port Droidi
 
 Legacy devices without an Android 9 port cannot be ported to Droidian. So it's either Android 9 or bust!
 
+Translations
+------------
+
+This porting guide is also available in the following languages:
+* [Chinese (中文)](https://github.com/droidian/porting-guide/tree/zh_CN)
+
 Contents
 --------
 
