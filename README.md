@@ -1,40 +1,38 @@
-Droidian porting guide
+Droidian 移植指南
 ======================
 
-Droidian is a GNU/Linux distribution based on top of Debian for mobile devices.
+Droidian 是一个基于 Debian 的 GNU/Linux 发行版，专为移动设备设计。
 
-The goal of Droidian is to be able to run Debian on Android phones.
+Droidian 的目标是使 Debian 能在 Android 手机上运行。
 
-This is accomplished by using well-known technologies such as [libhybris](https://github.com/libhybris/libhybris) and [halium](https://halium.org).
+这一目标通过使用一些知名的技术实现，例如 [libhybris](https://github.com/libhybris/libhybris) 和 [halium](https://halium.org)。
 
-If your device is launched with Android 9 or above it is possible to port Droidian to it.
+如果你的设备是 Android 9 或更高版本发布的，那么就有可能将 Droidian 移植到该设备上。
 
-Legacy devices without an Android 9 port cannot be ported to Droidian. So it's either Android 9 or bust!
+对于没有 Android 9 移植的旧设备，不能移植到 Droidian 上。所以要么 Android 9，要么就没戏了！
 
-Contents
+内容
 --------
 
-* Currently known-to-work and supported devices
-  * [Droidian device page](https://devices.droidian.org)
-* Porting guide
-  * [Kernel compilation](./kernel-compilation.md)
-  * [Tips to aid debugging](./debugging-tips.md)
-  * [Rootfs creation](./rootfs-creation.md)
-  * [Host package repo](./host-package-repo.md)
+* 当前已知的工作和支持设备
+  * [Droidian 设备页面](https://devices.droidian.org)
+* 移植指南
+  * [内核编译](./kernel-compilation.md)
+  * [调试技巧](./debugging-tips.md)
+  * [Rootfs 创建](./rootfs-creation.md)
+  * [主机软件包仓库](./host-package-repo.md)
 
-Getting community help
+获取社区帮助
 ----------------------
 
-### Search the Droidian group
+### 搜索 Droidian 组
 
-The [Droidian telegram group](https://t.me/DroidianLinux/) (also bridged to [Matrix](https://matrix.to/#/%23droidian:matrix.org)) is a great resource.
-It's quite possible that your issue has been already discussed and resolved.
+[Droidian 电报组](https://t.me/DroidianLinux/)（也连接到 [Matrix](https://matrix.to/#/%23droidian:matrix.org)）是一个很好的资源。
+你的问题很可能已经被讨论和解决过。
 
-Please use the search function rather than ask straight away. Discussing the same things at length
-is boring especially when it has been already done in the past.
+请使用搜索功能，而不是直接提问。讨论相同的内容一再重复是很无聊的，特别是当这些内容已经被讨论过时。
 
-If you can't find an answer for your issue, try to be as detailed as possible (include a pastebin of your logs).
-When someone is available, they will try to help you out.
+如果你找不到答案，请尽可能详细地描述你的问题（包括日志的 pastebin 链接）。
+当有人有空时，他们会尽量帮助你。
 
-Note that no one owes you an answer, avoid pinging people repeatedly. Avoid posting screenshots of
-text messages, use a pastebin service instead.
+请注意，没有人有义务回答你的问题，避免重复标记别人。避免发布文本消息的截图，改用 pastebin 服务。

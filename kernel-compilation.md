@@ -1,68 +1,64 @@
-Kernel compilation
+内核编译
 ==================
 
-The stock Android kernel is unfortunately not enough to be able to run Droidian.
+遗憾的是，原版 Android 内核不足以运行 Droidian。
 
-The good news is that, on GSI-capable devices, often only kernel changes are necessary.
+好消息是，对于支持 GSI 的设备，通常只需进行内核更改。
 
-Table of contents
+目录
 -----------------
 
-* [Summary](#summary)
-* [Prerequisites](#prerequisites)
-* [Package bring-up](#package-bring-up)
-* [Kernel info options](#kernel-info-options)
-* [Kernel adaptation](#kernel-adaptation)
-* [Compiling](#compiling)
-* [Obtaining the boot image](#obtaining-the-boot-image)
-* [Committing changes](#committing-changes)
+* [总结](#summary)
+* [先决条件](#prerequisites)
+* [软件包配置](#package-bring-up)
+* [内核信息选项](#kernel-info-options)
+* [内核适配](#kernel-adaptation)
+* [编译](#compiling)
+* [获取启动镜像](#obtaining-the-boot-image)
+* [提交更改](#committing-changes)
 
-Summary
+总结
 -------
 
-Droidian runs on [halium](https://halium.org).
-If your device is launched with Android 9 or above it is possible to port Droidian to it.
-If it already has a halium-compliant kernel of halium-9.0 and above chances are that Droidian will work without much modification.
+Droidian 运行在 [halium](https://halium.org) 上。
+如果你的设备是 Android 9 或更高版本发布的，那么就有可能将 Droidian 移植到该设备上。
+如果它已经有 halium-9.0 及以上版本的兼容内核，Droidian 很可能会在没有太多修改的情况下正常工作。
 
-If your device has shipped with Android 8.1 or 9, it probably is GSI (Generic System Image) capable, and such it's possible to use an already available, generic Android System Image with Halium patches applied.
-This will reduce the amount of work the porter has to do significantly.
+如果你的设备是 Android 8.1 或 9，可能支持 GSI（通用系统镜像），这样可以使用已经提供的、带有 Halium 补丁的通用 Android 系统镜像。
+这将显著减少移植者需要做的工作量。
 
-If your device doesn't support GSI, you'll also need to compile a patched system image.
-The documentation for image creation can be found in [this guide](./image-creation.md)
+如果你的设备不支持 GSI，你还需要编译一个打了补丁的系统镜像。
+有关镜像创建的文档可以在 [此指南](./image-creation.md) 中找到。
 
-On Halium, the Android kernel is built via the standard Android toolchain.
-While this makes sense, on GSI-capable devices this can be a waste of time since often only kernel changes are required.
+在 Halium 上，Android 内核是通过标准的 Android 工具链构建的。
+虽然这样做是合理的，但对于支持 GSI 的设备，这可能是浪费时间，因为通常只需要更改内核。
 
-Thus, Droidian uses a different approach to compile kernels - the upside is that you get packaging for free so that kernels can be upgraded over-the-air via APT, if you wish so.
+因此，Droidian 使用不同的方法来编译内核——这样做的好处是你可以免费获得打包功能，从而可以通过 APT 进行 OTA 内核升级（如果你愿意的话）。
 
-Note that this guide assumes that you're going to cross-compile an arm64
-Android kernel on an x86_64 (amd64) machine using the Android-supplied
-precompiled toolchain that's available in the Droidian repositories.
-It's trivial to disable cross-compiling and compiling using the standard
-Debian toolchain.
+请注意，本指南假设你将使用 Android 提供的预编译工具链在 x86_64（amd64）机器上交叉编译 arm64 Android 内核。
+禁用交叉编译并使用标准 Debian 工具链进行编译是非常简单的。
 
-Using this method you can also compile and package mainline kernels.
+使用这种方法，你还可以编译和打包主线内核。
 
-An example kernel packaged using this guide is the [Android Kernel for the F(x)tec Pro1](https://github.com/droidian-devices/linux-android-fxtec-pro1/tree/droidian/debian).
+使用本指南打包的一个示例内核是 [F(x)tec Pro1 的 Android 内核](https://github.com/droidian-devices/linux-android-fxtec-pro1/tree/droidian/debian)。
 
-Prerequisites
+先决条件
 -------------
 
-* Device kernel sources
-* A Halium-compliant kernel defconfig
+* 设备内核源代码
+* 一个兼容 Halium 的内核 defconfig
 * Docker
 
-If you do not have a Halium-compliant kernel yet you should modify your kernel's configuration as suggested in [Kernel adaptation](#kernel-adaptation) later in the guide. Before doing this **make sure your kernel sources can be built and can boot Android**.
+如果你还没有兼容 Halium 的内核，你应该根据指南后面 [内核适配](#kernel-adaptation) 的建议修改内核的配置。在此之前 **确保你的内核源代码可以编译并能启动 Android**。
 
-Package bring-up
+软件包配置
 ----------------
 
-Assuming your kernel sources are located in `~/droidian/kernel/vendor/device`,
-you should create a new branch to house the Debian packaging.
+假设你的内核源代码位于 `~/droidian/kernel/vendor/device`，你应该创建一个新分支来存放 Debian 打包文件。
 
-We're also assuming that you want the resulting packages in `~/droidian/packages`.
+我们还假设你希望将生成的包放在 `~/droidian/packages`。
 
-Droidian tooling expects the kernel source to have a working git directory structure (be a kernel cloned from a git repository).
+Droidian 工具需要内核源代码有一个有效的 git 目录结构（即一个从 git 仓库克隆的内核）。
 
 	(host)$ KERNEL_DIR="$HOME/droidian/kernel/vendor/device"
 	(host)$ PACKAGES_DIR="$HOME/droidian/packages"
@@ -70,16 +66,15 @@ Droidian tooling expects the kernel source to have a working git directory struc
 	(host)$ cd $KERNEL_DIR
 	(host)$ git checkout -b droidian
 
-Now it's time to fire up the Docker container.
+现在是启动 Docker 容器的时候了。
 
 	(host)$ docker run --rm -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:current-amd64 bash
 
-Inside the Docker container, install the `linux-packaging-snippets`, that
-provides the example `kernel-info.mk` file.
+在 Docker 容器中，安装 `linux-packaging-snippets`，它提供了示例 `kernel-info.mk` 文件。
 
 	(docker)# apt-get install linux-packaging-snippets
 
-And create the skeleton packaging:
+并创建骨架打包文件：
 
 	(docker)# cd /buildd/sources
 	(docker)# mkdir -p debian/source
@@ -96,30 +91,28 @@ And create the skeleton packaging:
 	EOF
 	(docker)# chmod +x debian/rules
 
-Now edit `debian/kernel-info.mk` to match your kernel settings.
+现在编辑 `debian/kernel-info.mk` 以匹配你的内核设置。
 
-Most of the defaults are enough for building Android kernels with the Pie
-toolchain, so you'll probably need to change device-specific settings (such
-as vendor, name, cmdline, defconfig and the various offsets).
+大多数默认设置足以使用 Pie 工具链构建 Android 内核，因此你可能需要更改特定于设备的设置（例如供应商、名称、cmdline、defconfig 和各种偏移量）。
 
-by unpacking an already built `boot.img` using unpackbootimg all the offsets can be found.
+通过解压一个已经构建的 `boot.img`，可以找到所有偏移量。
 
-Kernel info options
+内核信息选项
 -------------------
 
-unpackbootimg syntax goes as follows
+unpackbootimg 的语法如下
 
 	(docker)# unpackbootimg --boot_img boot.img
 
-or for the AOSP version of unpackbootimg
+或者使用 AOSP 版本的 unpackbootimg
 
 	(docker)# unpackbootimg -i boot.img
 
-### kernel-info.mk entries
+### kernel-info.mk 条目
 
-* `KERNEL_BASE_VERSION` is the kernel version which can be viewed in Makefile at the root of your kernel source.
+* `KERNEL_BASE_VERSION` 是可以在内核源代码根目录的 Makefile 中查看的内核版本。
 
-As an example
+例如
 
 ```
 VERSION = 4
@@ -127,310 +120,56 @@ PATCHLEVEL = 14
 SUBLEVEL = 221
 ```
 
-will be 4.14.221
+将会是 4.14.221
 
-* `KERNEL_DEFCONFIG` is the defconfig filename found at arch/YOURARCH/configs
+* `KERNEL_DEFCONFIG` 是在 arch/YOURARCH/configs 中找到的 defconfig 文件名
 
-* `KERNEL_IMAGE_WITH_DTB` determines whether or not to include a dtb file in the kernel. if this option is set `KERNEL_IMAGE_DTB` also needs to be set. if not an attempt to find it will occur.
+* `KERNEL_IMAGE_WITH_DTB` 决定是否在内核中包含 dtb 文件。如果此选项被设置，则还需要设置 `KERNEL_IMAGE_DTB`。如果没有，将尝试找到它。
 
-* `KERNEL_IMAGE_DTB` is the path to the dtb file which can be found in arch/YOURARCH/boot/dts/SOC/
+* `KERNEL_IMAGE_DTB` 是 dtb 文件的路径，可以在 arch/YOURARCH/boot/dts/SOC/ 中找到
 
-* `KERNEL_IMAGE_WITH_DTB_OVERLAY` determines whether or not to build a dtbo file. if this option is set `KERNEL_IMAGE_DTB_OVERLAY` also needs to be set. if not an attempt to find it will occur.
+* `KERNEL_IMAGE_WITH_DTB_OVERLAY` 决定是否构建 dtbo 文件。如果此选项被设置，则还需要设置 `KERNEL_IMAGE_DTB_OVERLAY`。如果没有，将尝试找到它。
 
-* `KERNEL_IMAGE_DTB_OVERLAY` is the path to the dtbo file which can be found in arch/YOURARCH/boot/dts/SOC/
+* `KERNEL_IMAGE_DTB_OVERLAY` 是 dtbo 文件的路径，可以在 arch/YOURARCH/boot/dts/SOC/ 中找到
 
-* `KERNEL_PREBUILT_DT` is available for devices with a prebuilt DT image (such as samsungs) and takes a path in the kernel tree.
+* `KERNEL_PREBUILT_DT` 适用于有预构建 DT 镜像的设备（如三星），并且需要在内核树中指定路径。
 
-All these values can be viewed by extracting a boot image with unpackbootimg
+所有这些值可以通过提取 boot 镜像并使用 unpackbootimg 查看
 
-* `KERNEL_BOOTIMAGE_CMDLINE` corresponds to "command line args" or "BOARD_KERNEL_CMDLINE" `console=tty0` and `droidian.lvm.prefer` should be appended to the cmdline. Make sure to remove any `systempart` entry from cmdline.
+* `KERNEL_BOOTIMAGE_CMDLINE` 对应于“命令行参数”或“BOARD_KERNEL_CMDLINE”。`console=tty0` 和 `droidian.lvm.prefer` 应该被追加到 cmdline 中。确保从 cmdline 中删除任何 `systempart` 条目。
 
-* `KERNEL_BOOTIMAGE_PAGE_SIZE` corresponds to "page size" or "BOARD_PAGE_SIZE"
+* `KERNEL_BOOTIMAGE_PAGE_SIZE` 对应于“页面大小”或“BOARD_PAGE_SIZE”
 
-* `KERNEL_BOOTIMAGE_BASE_OFFSET` corresponds to "base" or "BOARD_KERNEL_BASE"
+* `KERNEL_BOOTIMAGE_BASE_OFFSET` 对应于“基址”或“BOARD_KERNEL_BASE”
 
-* `KERNEL_BOOTIMAGE_KERNEL_OFFSET` corresponds to "kernel load address" or "BOARD_KERNEL_OFFSET"
+* `KERNEL_BOOTIMAGE_KERNEL_OFFSET` 对应于“内核加载地址”或“BOARD_KERNEL_OFFSET”
 
-* `KERNEL_BOOTIMAGE_INITRAMFS_OFFSET` corresponds to "ramdisk load address" or "BOARD_RAMDISK_OFFSET"
+* `KERNEL_BOOTIMAGE_INITRAMFS_OFFSET` 对应于“ramdisk 加载地址”或“BOARD_RAMDISK_OFFSET”
 
-* `KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET` corresponds to "second bootloader load address" or "BOARD_SECOND_OFFSET"
+* `KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET` 对应于“第二启动加载地址”或“BOARD_SECOND_OFFSET”
 
-* `KERNEL_BOOTIMAGE_TAGS_OFFSET` corresponds to "kernel tags load address" or "BOARD_TAGS_OFFSET"
+* `KERNEL_BOOTIMAGE_TAGS_OFFSET` 对应于“内核标签加载地址”或“BOARD_TAGS_OFFSET”
 
-* `KERNEL_BOOTIMAGE_DTB_OFFSET` corresponds to "dtb address" or "BOARD_DTB_OFFSET"
+* `KERNEL_BOOTIMAGE_DTB_OFFSET` 对应于“dtb 地址”或“BOARD_DTB_OFFSET”
 
-Although this option is only required for kernel header version 2. it can be commented otherwise.
+虽然此选项仅在内核头文件版本 2 中是必需的，否则可以被注释掉。
 
-* `KERNEL_BOOTIMAGE_VERSION` correlates to the kernel header version. Devices launched with Android 8 and lower are 0, Android 9 is 1, Android 10 is 2 and Android 11 is 2 and GKI devices are 3.
+* `KERNEL_BOOTIMAGE_VERSION` 关联到内核头文件版本。设备发布时 Android 8 及以下为 0，Android 9 为 1，Android 10 为 2，Android 11 为 2，而 GKI 设备为 3。
 
-* For Samsung devices `DEVICE_VBMETA_IS_SAMSUNG` must be set to 1.
+* 对于三星设备，`DEVICE_VBMETA_IS_SAMSUNG` 必须设置为 1。
 
-* `BUILD_CC` for most devices launched with Android 9 and above is clang but if your kernel fails to build with `clang` you might try changing the value to `aarch64-linux-android-gcc-4.9` to build with gcc.
+* 对于大多数 Android 9 及以上发布的设备，`BUILD_CC` 是 clang，但如果你的内核在使用 `clang` 时无法编译，你可以尝试将值更改为 `aarch64-linux-android-gcc-4.9` 以使用 gcc 编译。
 
-* If your device requires a toolchain which is not included in the buildsystem, you can manually download the toolchain and add the path to `BUILD_PATH`.
+* 如果你的设备需要的工具链不包含在构建系统中，你可以手动下载工具链并将路径添加到 `BUILD_PATH`。
 
-* `DEB_BUILD_FOR` and `KERNEL_ARCH` should be changed according to device architecture.
+* `DEB_BUILD_FOR` 和 `KERNEL_ARCH` 应根据设备架构进行更改。
 
-### Enabling automatic boot partition flashing
+### 启用自动启动分区闪存
 
-Installing the built packages means that the kernel and its modules are
-put in place - but the user should still flash it to their boot partition.
+安装构建的包意味着内核及其模块已经到位——但用户仍然需要将其闪存到启动分区。
 
-If you wish to enable automatic flashing (via [flash-bootimage](https://github.com/droidian/flash-bootimage)),
-you can do so by setting `FLASH_ENABLED` to 1 (which is the default).
+如果你希望启用自动闪存（通过 [flash-bootimage](https://github.com/droidian/flash-bootimage)），可以通过将 `FLASH_ENABLED` 设置为 1（这是默认值）来实现。
 
-If your device doesn't support A/B updates, be sure to set `FLASH_IS_LEGACY_DEVICE` to 1.
+如果你的设备不支持 A/B 更新，请确保将 `FLASH_IS_LEGACY_DEVICE` 设置为 1。
 
-Note that you need to specify some device info so that `flash-bootimage` can cross-check when running on-device:
-
-* `FLASH_INFO_MANUFACTURER`: the value of the `ro.product.vendor.manufacturer`
-Android property. On a running Droidian system, you can obtain it with
-
-	(device)$ sudo android_getprop ro.product.vendor.manufacturer
-
-* `FLASH_INFO_MODEL`: the value of the `ro.product.vendor.model`
-Android property. On a running Droidian system, you can obtain it with
-
-	(device)$ sudo android_getprop ro.product.vendor.model
-
-* `FLASH_INFO_CPU`: a relevant bit of info from `/proc/cpuinfo`.
-
-If `FLASH_INFO_MANUFACTURER` or `FLASH_INFO_MODEL` are not defined (they both
-are required for checking against the Android properties), `flash-bootimage`
-will check for `FLASH_INFO_CPU`.
-
-If no device-specific information has been specified, the kernel upgrade will fail.
-
-An example for the F(x)tec Pro1:
-
-```
-FLASH_ENABLED = 1
-FLASH_INFO_MANUFACTURER = Fxtec
-FLASH_INFO_MODEL = QX1000
-FLASH_INFO_CPU = Qualcomm Technologies, Inc MSM8998
-```
-
-### Toolchains
-
-Droidian ships
-
-* gcc 4.9 (legacy kernels)
-* clang-android-6.0-4691093 (recommended toolchain for android9)
-* clang-android-9.0-r353983c (recommended toolchain for android10)
-* clang-android-10.0-r370808 (recommended toolchain for android11)
-* clang-android-12.0-r416183b (recommended toolchain for android12-12.1)
-* clang-android-14.0-r450784d (recommended toolchain for android13)
-
-To use `clang-android-6.0-4691093` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
-
-`/usr/lib/llvm-android-6.0-4691093/bin`
-
-To use `clang-android-9.0-r353983c` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
-
-`/usr/lib/llvm-android-9.0-r353983c/bin`
-
-To use `clang-android-10.0-r370808` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
-
-`/usr/lib/llvm-android-10.0-r370808/bin`
-
-To use `clang-android-12.0-r416183b` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
-
-`/usr/lib/llvm-android-12.0-r416183b/bin`
-
-To use `clang-android-14.0-r450784d` add it to `DEB_TOOLCHAIN` and set `BUILD_PATH` to the following value
-
-`/usr/lib/llvm-android-14.0-r450784d/bin`
-
-In case you're on an older device and your kernel does not compile with any of the clang toolchains you can fallback to GCC
-
-To use GCC change `BUILD_CC` to from `clang` to `aarch64-linux-android-gcc-4.9`
-
-Keep in mind that any kernel newer than 4.4 should should compile fine with clang, there are always exceptions.
-
-### Build target
-
-Build target is passed to `make` which tells the make command what we expect at the end of the build.
-
-Default build target is `Image.gz` which generates an image and adds the dtb image after making the gzip archive.
-
-`Image.gz-dtb` can also be used for older devices that require the DTB appended to the end of the kernel.
-
-`Image` is also available if your device requires a prebuilt dt
-
-You can find which build target is required for your device by looking at the device tree of your device.
-
-### initramfs hooks
-
-In case of any issues with initramfs (as an example unl0kr showing a black screen while encryption is enabled), scripts can be added to the packaging which will be included in the ramdisk.
-
-[This packaging](https://github.com/droidian-devices/linux-android-fxtec-pro1x/blob/droidian/debian/initramfs-overlay/scripts/halium-hooks) can be taken as a reference.
-
-The following adds a function which will run in the initramfs on boot.
-
-Any command that will aid the system in booting can be added to the script.
-
-### build rules
-
-On builds failing after the kernel compilation stage (during packaging), errors can be ignored.
-
-build sequence can be altered with `override_dh_sequence` (make sure to replace sequence with your own sequence)
-
-As as example
-
-```
-override_dh_dwz:
-override_dh_strip:
-override_dh_makeshlibs:
-```
-
-can be added to the end of `debian/rules`.
-
-It is recommended to come back and fix the build errors later on instead of ignoring them as they might cause various issues in the future.
-
-Kernel adaptation
------------------
-
-As a bare minimum these options need to be enabled in your defconfig
-
-Some of these options might not be available to you depending on your kernel version, they can be safely ignored.
-
-```
-CONFIG_DEVTMPFS=y
-CONFIG_VT=y
-CONFIG_NAMESPACES=y
-CONFIG_MODULES=y
-CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
-CONFIG_USB_CONFIGFS_RNDIS=y
-CONFIG_USB_CONFIGFS_RMNET_BAM=y
-CONFIG_USB_CONFIGFS_MASS_STORAGE=y
-CONFIG_INIT_STACK_ALL_ZERO=y
-CONFIG_ANDROID_PARANOID_NETWORK=n
-CONFIG_ANDROID_BINDERFS=n
-```
-
-Usually `CONFIG_NAMESPACES` enables all the namespace options but if it did not, all these options should be added
-
-```
-CONFIG_SYSVIPC=y
-CONFIG_PID_NS=y
-CONFIG_IPC_NS=y
-CONFIG_UTS_NS=y
-```
-
-Later on for other components, various options should be enabled after the initial boot is done successfully.
-
-For Bluetooth these options are required
-
-```
-CONFIG_BT=y
-CONFIG_BT_HIDP=y
-CONFIG_BT_RFCOMM=y
-CONFIG_BT_RFCOMM_TTY=y
-CONFIG_BT_BNEP=y
-CONFIG_BT_BNEP_MC_FILTER=y
-CONFIG_BT_BNEP_PROTO_FILTER=y
-CONFIG_BT_HCIVHCI=y
-```
-
-For Waydroid
-
-```
-CONFIG_SW_SYNC_USER=y
-CONFIG_NET_CLS_CGROUP=y
-CONFIG_CGROUP_NET_CLASSID=y
-CONFIG_VETH=y
-CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
-CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder"
-```
-
-For Plymouth (boot animation)
-
-```
-# CONFIG_FB_SYS_FILLRECT is not set
-# CONFIG_FB_SYS_COPYAREA is not set
-# CONFIG_FB_SYS_IMAGEBLIT is not set
-# CONFIG_FB_SYS_FOPS is not set
-# CONFIG_FB_VIRTUAL is not set
-```
-
-To ease debugging, pstore can be enabled to get logs on each boot
-
-```
-CONFIG_PSTORE=y
-CONFIG_PSTORE_CONSOLE=y
-CONFIG_PSTORE_RAM=y
-CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
-```
-
-If you have pstore enabled, you might find clues in `/sys/fs/pstore` from your recovery.
-
-You can use menuconfig to make sure all the options are enabled with all their dependencies.
-
-	(docker)# mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig
-
-After modifying your defconfig, copy `out/KERNEL_OBJ/.config` to `arch/YOURARCH/configs/your_defconfig`.
-
-As an alternative, `KERNEL_CONFIG_USE_FRAGMENTS = 1` can be set in `kernel-info.mk` to include defconfig fragments inside your defconfig on build time.
-
-defconfig fragments should be placed in the root of the kernel source in a directory called droidian. [this source](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/droidian/droidian) can be taken as a reference.
-
-`KERNEL_CONFIG_USE_DIFFCONFIG` can be enabled to use the python script `diffconfig` to compare fragments and the main defconfig.
-
-to use diffconfig a diff file should be provided like so
-
-`KERNEL_PRODUCT_DIFFCONFIG = diff_file`
-
-If LXC fails to start you can use `lxc-checkconfig` after device first booted to check for other options that might be needed.
-
-Compiling
----------
-
-Now that `kernel-info.mk` has been modified, the only thing that remains
-is to actually compile the kernel.
-
-First of all, (re)create the `debian/control` file:
-
-	(docker)# rm -f debian/control
-	(docker)# debian/rules debian/control
-
-Now that everything is in place, you can start a build with `releng-build-package`:
-
-	(docker)# RELENG_HOST_ARCH="arm64" releng-build-package
-
-The `RELENG_HOST_ARCH` variable is required when cross-building.
-
-If everything goes well, you'll find the resulting packages in `$PACKAGES_DIR`.
-
-DTB/DTBO compilation failure
-----------------------------
-
-In case of DTB/DTBO compilation failure it is a good idea to try using an external dtc compiler instead of the one presend in the kernel tree.
-
-To do so after building the control file, add `device-tree-compiler` to Build-Depends then and in `debian/rules` after the include line add
-
-`BUILD_COMMAND := $(BUILD_COMMAND) DTC_EXT=/usr/bin/dtc`
-
-Obtaining the boot image
-------------------------
-
-The boot image is shipped into the `linux-bootimage-VERSION-VENDOR-DEVICE` package.
-
-You can pick up the boot.img by extracting the package with `dpkg-deb` or
-by picking up directly from the compiled artifacts (`out/KERNEL_OBJ/boot.img`).
-
-The kernel image already embeds the Droidian initramfs.
-
-Make sure to save all your `linux-*.deb` packages as you'll need those further in the guide.
-
-Committing changes
-------------------
-
-When you're happy with the kernel, be sure to commit your changes as well as the debian packaging to a git repository:
-
-* debian/source/
-* debian/control
-* debian/rules
-* debian/compat
-* debian/kernel-info.mk
-
-...and then push your `droidian` branch for others to enjoy.
+注意，你需要指定一些设备信息，以便 `flash

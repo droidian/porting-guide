@@ -1,132 +1,148 @@
-Rootfs creation
+### 根文件系统 (rootfs) 创建
 ===============
 
-To make the installation easier and more consistent we build device specific rootfs images.
+为了使安装过程更简单和一致，我们会构建特定于设备的 rootfs 镜像。
 
-Table of contents
+目录
 -----------------
 
-* [Summary](#summary)
-* [Prerequisites](#prerequisites)
-* [Package creation](#package-creation)
-* [Building the rootfs](#building-the-rootfs)
-* [Automating nightly images](#automating-nightly-images)
+* [总结](#summary)
+* [先决条件](#prerequisites)
+* [包创建](#package-creation)
+* [构建 rootfs](#building-the-rootfs)
+* [自动化夜间镜像](#automating-nightly-images)
 
-Summary
+总结
 -------
 
-After debugging you should start building a rootfs specific to your device to make installations more consistent and user friendly.
+在调试完成后，您应该开始为您的设备构建一个特定的 rootfs，以使安装过程更加一致和用户友好。
 
-This process involves creating an adaptation package and an apt repository
+这个过程涉及创建一个适配包和一个 apt 仓库。
 
-Adaptation package is a debian package that holds all the device specific configurations and custom binaries and scripts needed for the device to function correctly.
+适配包是一个 Debian 包，包含所有设备特定的配置、定制的二进制文件和设备正常运行所需的脚本。
 
-To be able to do OTA updates, you have to set up an apt repository either on some platform like GitHub or a server.
+为了能够进行 OTA 更新，您必须设置一个 apt 仓库，可以托管在像 GitHub 这样的平台上或在服务器上。
 
-Creation of the apt repository is out of the scope of this tutorial.
+创建 apt 仓库的过程超出了本教程的范围。
 
-Prerequisites
+先决条件
 -------------
 
-* Device specific files
+* 设备特定文件
 * Docker
 
-Dependencies
+依赖项
 ------------
 
-dpkg-dev gpg git and apt-utils are required to be installed on your host
+在您的主机上需要安装 `dpkg-dev`、`gpg`、`git` 和 `apt-utils`。
 
-	(host)# apt update && apt install dpkg-dev gpg apt-utils
+```bash
+(host)# apt update && apt install dpkg-dev gpg apt-utils
+```
 
-Package creation
+包创建
 ----------------
 
-First clone into the droidian build tools repository
+1. **克隆 Droidian 构建工具仓库**
 
-	(host)$ git clone https://github.com/droidian-releng/droidian-build-tools/ && cd droidian-build-tools/bin
+   ```bash
+   (host)$ git clone https://github.com/droidian-releng/droidian-build-tools/ && cd droidian-build-tools/bin
+   ```
 
-Now create a template for your device. of course replace vendor, codename, ARCH and APIVER
+2. **为您的设备创建模板**
+   替换 `vendor`、`codename`、`ARCH` 和 `APIVER` 为您的设备的详细信息。
 
-APIVER can be 28, 29 or 30 depending on which Android version you're using as your base
+   ```bash
+   (host)$ ./droidian-new-device -v vendor -n codename -c ARCH -a APIVER -r phone -d droidian
+   ```
 
-ARCH can be either arm64, armhf or amd64
+   - `APIVER`: Android API 版本（例如，28、29、30）。
+   - `ARCH`: 架构（例如，arm64、armhf、amd64）。
 
-	(host)$ ./droidian-new-device -v vendor -n codename -c ARCH -a APIVER -r phone -d droidian
+3. **初始化 QEMU 以支持 Docker**
 
-As you will be building for a device with another architecture, you must initialize qemu-user-static to enable emulation for docker
+   ```bash
+   (host)$ docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+   ```
 
-	(host)$ docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+4. **准备设备特定文件**
+   将这些文件放置在 `sparse/` 目录中的 `adaption-vendor-codename` 目录下。
 
-Go to the newly created adaptation directory
+5. **设置您的仓库 URL**
+   编辑 `sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list` 文件以包含您的仓库 URL。
 
-	(host)$ cd droidian/vendor/codename/packages/adaptation-vendor-codename/
+   ```plaintext
+   deb [signed-by=/usr/share/keyrings/codename.gpg] https://YOURREPO.TLD bookworm main
+   ```
 
-Now put all your device specific files under `sparse/` with a linux directory structure
+6. **复制您的 GPG 文件**
+   将您的 GPG 密钥放到 `sparse/usr/share/keyrings/codename.gpg` 中。
 
-Make sure to put your repository's URL in `~/droidian-build-tools/bin/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list` with this format
+7. **构建 Debian 包**
 
-`deb [signed-by=/usr/share/keyrings/codename.gpg] https://YOURREPO.TLD bookworm main`
+   ```bash
+   (host)$ ~/droidian-build-tools/bin/droidian-build-package
+   ```
 
-Then copy your gpg file to `~/droidian-build-tools/bin/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/share/keyrings/codename.gpg`. Make sure to replace codename.
+8. **上传包文件**
+   将 `~/droidian-build-tools/bin/droidian/vendor/codename/droidian/apt` 中的文件复制到您的仓库中。
 
-After copying all your files build the deb package
+9. **创建可刷写的包**
+   在您的 Droidian 设备上：
 
-	(host)$ ~/droidian-build-tools/bin/droidian-build-package
+   ```bash
+   (device)$ apt update
+   (device)$ package-sideload-create adaptation-droidian-codename.zip adaptation-vendor-codename adaptation-vendor-codename-configs
+   ```
 
-Make sure to copy all the files from `~/droidian-build-tools/bin/droidian/vendor/codename/droidian/apt` to the repository you specified in `~/droidian-build-tools/bin/droidian/vendor/codename/packages/adaptation-vendor-codename/sparse/usr/lib/adaptation-vendor-model/sources.list.d/community-vendor-device.list`
+10. **提交更改**
+    确保您的仓库更改已提交到 Git 仓库。
 
-Now at this point you can use `package-sideload-create` on your droidian device to create a recovery flashable package from those two deb packages.
+---
 
-After copying the deb files to your personal repository, add that repository to your device by adding the sources list file to your device then do
-> Refer to our [guide](./host-package-repo.md) on hosting a package repository for detailed instructions.
+### 构建 rootfs
 
-	(device)# apt update
-	(device)# package-sideload-create adaptation-droidian-codename.zip adaptation-vendor-codename adaptation-vendor-codename-configs
+1. **添加您的内核包**
+   将您在内核编译过程中构建的 `linux-*.deb` 包添加到 `community_devices.yml` 中，或作为依赖项添加到 `debian/control` 中。
 
-At the end you should get a zip file which is flashable from recovery and has all your changes.
+2. **拉取 Rootfs Builder Docker 镜像**
 
-Also make sure to commit your repository/changes to a git repository.
+   ```bash
+   (host)$ docker pull quay.io/droidian/rootfs-builder:current-amd64
+   ```
 
-Building the rootfs
--------------------
+3. **使用 Docker 构建 Rootfs**
 
-Before building the rootfs make sure to add your `linux-*.deb` packages you have build during the kernel compilation process to `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/community_devices.yml` as a package entry.
+   ```bash
+   (host)$ cd ~/droidian-build-tools/droidian/vendor/codename/droidian
+   (host)$ mkdir images
+   (host)$ docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:current-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="nightly" ./generate_device_recipe.py vendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
+   ```
 
-As an alternative solution you can try adding those packages as a dependency to your adaptation package in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/debian/control`.
+4. **定位 Rootfs 镜像**
+   最终镜像应位于 `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/images/` 中。
 
-First pull the rootfs-builder docker image
+---
 
-	(host)$ docker pull quay.io/droidian/rootfs-builder:current-amd64
+### 自动化夜间镜像
 
-Now run debos in the docker container rootfs-builder to build the rootfs. Make sure to replace the placeholder values
+要使用 GitHub Actions 自动化生成夜间构建：
 
-	(host)$ cd ~/droidian-build-tools/droidian/vendor/codename/droidian
-	(host)$ mkdir images
-	(host)$ docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:current-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="nightly" ./generate_device_recipe.py vendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
+1. **分叉仓库**
+   - 分叉 Droidian Images 仓库: [droidian-images/droidian](https://github.com/droidian-images/droidian)。
+   - 分叉 rootfs 模板仓库（可选）: [droidian-releng/rootfs-templates](https://github.com/droidian-releng/rootfs-templates)。
 
-If everything builds fine you should have your LVM fastboot flashable rootfs image in `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/images/`.
+2. **创建 `community_devices.yml`**
+   在您的分叉的 Droidian Images 仓库中创建 `community_devices.yml` 文件以包含您的设备。
 
-Automating nightly images
--------------------------
+3. **添加设备包**
+   - **使用 `pre-overlay/` 目录**: 将 APT 源文件添加到 `pre-overlay/etc/apt/sources.list.d/` 中。
+   - **使用 Rootfs 模板（替代方案）**: 更新 `.gitmodules` 文件以指向您的分叉 rootfs 模板。
+   - **使用 `apt/` 目录（替代方案）**: 将您的设备包和发行文件添加到 Droidian Images 分叉仓库的 `apt/` 目录中。
 
-You can automate your builds with GitHub Actions to generate new images every day for your device with your changes. Take [this actions yml file](https://github.com/droidian-onclite/droidian-images/blob/bookworm/.github/workflows/release.yml) as an example.
+4. **触发工作流**
+   在您的 GitHub Actions 仓库中启动工作流以开始生成夜间镜像。
 
-To set up nightly builds:
+---
 
-**Fork the Repositories:**
-- Fork the Droidian Images repository: [droidian-images/droidian](https://github.com/droidian-images/droidian).
-- Fork the rootfs template repository (optional): [droidian-releng/rootfs-templates](https://github.com/droidian-releng/rootfs-templates).
-
-**Create `community_devices.yml`:**
-- In your forked Droidian Images repository, create `community_devices.yml` to include your device. Use an existing device entry in `devices.yml` as a reference.
-> Note: Using `community_devices.yml` is recommended as it makes merging from upstream repo easier.
-
-**Add Device Packages:**
-- **Using `pre-overlay/` Directory:** Add your APT source files to `pre-overlay/etc/apt/sources.list.d/` in your Droidian Images repository.
-- **Using Rootfs Template (Alternative):** If not using the `pre-overlay/` directory, add your APT source files to `apt/etc/apt/sources.list.d/`in your forked rootfs template. Update the `.gitmodules` file in your Droidian Images repo fork to point to your forked rootfs template.
-- **Using `apt/` Directory (Alternative):** Add your device packages files and their release files to the `apt/` directory in your Droidian Images fork repository. This method is used if you don’t have a dedicated deb package repository.
-
-> Note: Hosting a package repo is recommended as it makes updating the packages easier on device. You can find instructions for hosting a repo [here](./host-package-repo.md).
-
-**Trigger the Workflow:**
-- Start the workflow in your Droidian Images fork repository to begin generating nightly images.
+通过遵循这些步骤，您将能够为 Droidian 创建和自动化设备特定的 rootfs 镜像。如果遇到问题，请确保所有路径和配置正确，并参考详细的文档或社区支持。
