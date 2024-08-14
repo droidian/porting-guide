@@ -9,7 +9,7 @@
 * [摘要](#摘要)
 * [先决条件](#先决条件)
 * [包创建](#包创建)
-* [构建 rootfs](#构建 rootfs)
+* [构建rootfs](#构建rootfs)
 * [夜间自动构建](#夜间自动构建)
 
 概括
@@ -87,7 +87,7 @@ ARCH 可以是 arm64、armhf 或 amd64
 
 还要确保将您的存储库/更改提交到 git 存储库。
 
-构建 rootfs
+构建rootfs
 -------------------
 
 在构建 rootfs 之前，请确保将您在内核编译过程中构建的 `linux-*.deb` 软件包添加到 `~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian /community_devices.yml` 作为包条目。
