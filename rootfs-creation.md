@@ -6,11 +6,11 @@
 目录
 -----------------
 
-* [摘要](#summary)
+* [摘要](#摘要)
 * [先决条件](#先决条件)
-* [包创建](#package-creation)
-* [构建 rootfs](#building-the-rootfs)
-* [夜间自动构建](#automating-nightly-images)
+* [包创建](#包创建)
+* [构建 rootfs](#构建 rootfs)
+* [夜间自动构建](#夜间自动构建)
 
 概括
 --------
