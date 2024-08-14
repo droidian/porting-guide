@@ -50,7 +50,7 @@ Debian 工具链。
 
 * 设备内核源码
 * 符合 Halium 标准的内核 defconfig
-* 码头工人
+* Docker
 
 如果您还没有兼容 Halium 的内核，您应该按照指南后面的[内核适配](#kernel-adaptation) 中的建议修改内核的配置。在执行此操作之前**确保您的内核源代码可以构建并且可以启动 Android**。
 
