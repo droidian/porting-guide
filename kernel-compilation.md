@@ -1,64 +1,68 @@
 内核编译
-==================
+=================
 
-遗憾的是，原版 Android 内核不足以运行 Droidian。
+遗憾的是，现有的 Android 内核不足以运行 Droidian。
 
-好消息是，对于支持 GSI 的设备，通常只需进行内核更改。
+好消息是，在支持 GSI 的设备上，通常只需要更改内核。
 
 目录
 -----------------
 
-* [总结](#summary)
-* [先决条件](#prerequisites)
-* [软件包配置](#package-bring-up)
-* [内核信息选项](#kernel-info-options)
-* [内核适配](#kernel-adaptation)
-* [编译](#compiling)
-* [获取启动镜像](#obtaining-the-boot-image)
-* [提交更改](#committing-changes)
+* [摘要](#摘要)
+* [先决条件](#先决条件)
+* [包启动](#包启动)
+* [内核信息选项](#内核信息选项)
+* [内核适配](#内核适配)
+* [编译](#编译)
+* [获取启动镜像](#获取启动镜像)
+* [提交更改](#提交更改)
 
-总结
--------
+摘要
+--------
 
-Droidian 运行在 [halium](https://halium.org) 上。
-如果你的设备是 Android 9 或更高版本发布的，那么就有可能将 Droidian 移植到该设备上。
-如果它已经有 halium-9.0 及以上版本的兼容内核，Droidian 很可能会在没有太多修改的情况下正常工作。
+Droidian 在 [halium](https://halium.org) 上运行。
+如果您的设备运行的是 Android 9 或更高版本，则可以将 Droidian 移植到该设备​​。
+如果它已经具有 halium-9.0 及以上版本的兼容 halium 的内核，则 Droidian 无需太多修改即可运行。
 
-如果你的设备是 Android 8.1 或 9，可能支持 GSI（通用系统镜像），这样可以使用已经提供的、带有 Halium 补丁的通用 Android 系统镜像。
-这将显著减少移植者需要做的工作量。
+如果您的设备预装了 Android 8.1 或 9，则它可能具有 GSI（通用系统映像）功能，因此可以使用已应用的 Halium 补丁的现有通用 Android 系统映像。
+这将大大减少搬运工必须做的工作量。
 
-如果你的设备不支持 GSI，你还需要编译一个打了补丁的系统镜像。
-有关镜像创建的文档可以在 [此指南](./image-creation.md) 中找到。
+如果您的设备不支持 GSI，您还需要编译修补的系统映像。
+图像创建的文档可以在[本指南](./image-creation.md)中找到
 
-在 Halium 上，Android 内核是通过标准的 Android 工具链构建的。
-虽然这样做是合理的，但对于支持 GSI 的设备，这可能是浪费时间，因为通常只需要更改内核。
+在 Halium 上，Android 内核是通过标准 Android 工具链构建的。
+虽然这是有道理的，但在支持 GSI 的设备上这可能会浪费时间，因为通常只需要更改内核。
 
-因此，Droidian 使用不同的方法来编译内核——这样做的好处是你可以免费获得打包功能，从而可以通过 APT 进行 OTA 内核升级（如果你愿意的话）。
+因此，Droidian 使用不同的方法来编译内核 - 好处是您可以免费打包，以便可以通过 APT 无线升级内核（如果您愿意）。
 
-请注意，本指南假设你将使用 Android 提供的预编译工具链在 x86_64（amd64）机器上交叉编译 arm64 Android 内核。
-禁用交叉编译并使用标准 Debian 工具链进行编译是非常简单的。
+请注意，本指南假设您要交叉编译 arm64
+使用 Android 提供的 x86_64 (amd64) 计算机上的 Android 内核
+Droidian 存储库中提供了预编译的工具链。
+禁用交叉编译和使用标准编译很简单
+Debian 工具链。
 
-使用这种方法，你还可以编译和打包主线内核。
+使用此方法您还可以编译和打包主线内核。
 
-使用本指南打包的一个示例内核是 [F(x)tec Pro1 的 Android 内核](https://github.com/droidian-devices/linux-android-fxtec-pro1/tree/droidian/debian)。
+使用本指南打包的示例内核是 [F(x)tec Pro1 的 Android 内核](https://github.com/droidian-devices/linux-android-fxtec-pro1/tree/droidian/debian)。
 
 先决条件
 -------------
 
-* 设备内核源代码
-* 一个兼容 Halium 的内核 defconfig
+* 设备内核源码
+* 符合 Halium 标准的内核 defconfig
 * Docker
 
-如果你还没有兼容 Halium 的内核，你应该根据指南后面 [内核适配](#kernel-adaptation) 的建议修改内核的配置。在此之前 **确保你的内核源代码可以编译并能启动 Android**。
+如果您还没有兼容 Halium 的内核，您应该按照指南后面的[内核适配](#内核适配) 中的建议修改内核的配置。在执行此操作之前**确保您的内核源代码可以构建并且可以启动 Android**。
 
-软件包配置
+包启动
 ----------------
 
-假设你的内核源代码位于 `~/droidian/kernel/vendor/device`，你应该创建一个新分支来存放 Debian 打包文件。
+假设您的内核源位于“~/droidian/kernel/vendor/device”中，
+您应该创建一个新分支来容纳 Debian 软件包。
 
-我们还假设你希望将生成的包放在 `~/droidian/packages`。
+我们还假设您希望将生成的包放在“~/droidian/packages”中。
 
-Droidian 工具需要内核源代码有一个有效的 git 目录结构（即一个从 git 仓库克隆的内核）。
+Droidian 工具期望内核源代码具有工作的 git 目录结构（是从 git 存储库克隆的内核）。
 
 	(host)$ KERNEL_DIR="$HOME/droidian/kernel/vendor/device"
 	(host)$ PACKAGES_DIR="$HOME/droidian/packages"
@@ -66,15 +70,16 @@ Droidian 工具需要内核源代码有一个有效的 git 目录结构（即一
 	(host)$ cd $KERNEL_DIR
 	(host)$ git checkout -b droidian
 
-现在是启动 Docker 容器的时候了。
+现在是时候启动 Docker 容器了。
 
 	(host)$ docker run --rm -v $PACKAGES_DIR:/buildd -v $KERNEL_DIR:/buildd/sources -it quay.io/droidian/build-essential:current-amd64 bash
 
-在 Docker 容器中，安装 `linux-packaging-snippets`，它提供了示例 `kernel-info.mk` 文件。
+在 Docker 容器内，安装 `linux-packaging-snippets`，
+提供示例“kernel-info.mk”文件。
 
 	(docker)# apt-get install linux-packaging-snippets
 
-并创建骨架打包文件：
+并创建框架package：
 
 	(docker)# cd /buildd/sources
 	(docker)# mkdir -p debian/source
@@ -91,28 +96,30 @@ Droidian 工具需要内核源代码有一个有效的 git 目录结构（即一
 	EOF
 	(docker)# chmod +x debian/rules
 
-现在编辑 `debian/kernel-info.mk` 以匹配你的内核设置。
+现在编辑 `debian/kernel-info.mk` 以匹配您的内核设置。
 
-大多数默认设置足以使用 Pie 工具链构建 Android 内核，因此你可能需要更改特定于设备的设置（例如供应商、名称、cmdline、defconfig 和各种偏移量）。
+大多数默认值足以使用 Pie 构建 Android 内核
+工具链，因此您可能需要更改特定于设备的设置（例如
+如 vendor、name、cmdline、defconfig 和各种偏移量）。
 
-通过解压一个已经构建的 `boot.img`，可以找到所有偏移量。
+通过使用 unpackbootimg 解压已经构建的“boot.img”，可以找到所有偏移量。
 
 内核信息选项
 -------------------
 
-unpackbootimg 的语法如下
+unpackbootimg 语法如下
 
 	(docker)# unpackbootimg --boot_img boot.img
 
-或者使用 AOSP 版本的 unpackbootimg
+或者 unpackbootimg 的 AOSP 版本
 
 	(docker)# unpackbootimg -i boot.img
 
 ### kernel-info.mk 条目
 
-* `KERNEL_BASE_VERSION` 是可以在内核源代码根目录的 Makefile 中查看的内核版本。
+* `KERNEL_BASE_VERSION` 是内核版本，可以在内核源代码根目录下的 Makefile 中查看。
 
-例如
+举个例子
 
 ```
 VERSION = 4
@@ -120,56 +127,310 @@ PATCHLEVEL = 14
 SUBLEVEL = 221
 ```
 
-将会是 4.14.221
+将于 4.14.221
 
 * `KERNEL_DEFCONFIG` 是在 arch/YOURARCH/configs 中找到的 defconfig 文件名
 
-* `KERNEL_IMAGE_WITH_DTB` 决定是否在内核中包含 dtb 文件。如果此选项被设置，则还需要设置 `KERNEL_IMAGE_DTB`。如果没有，将尝试找到它。
+* `KERNEL_IMAGE_WITH_DTB` 决定是否在内核中包含 dtb 文件。如果设置此选项，还需要设置“KERNEL_IMAGE_DTB”。如果没有，请尝试找到它
 
 * `KERNEL_IMAGE_DTB` 是 dtb 文件的路径，可以在 arch/YOURARCH/boot/dts/SOC/ 中找到
 
-* `KERNEL_IMAGE_WITH_DTB_OVERLAY` 决定是否构建 dtbo 文件。如果此选项被设置，则还需要设置 `KERNEL_IMAGE_DTB_OVERLAY`。如果没有，将尝试找到它。
+* `KERNEL_IMAGE_WITH_DTB_OVERLAY` 决定是否构建 dtbo 文件。如果设置此选项，还需要设置“KERNEL_IMAGE_DTB_OVERLAY”。如果没有请-=尝试找到它
 
 * `KERNEL_IMAGE_DTB_OVERLAY` 是 dtbo 文件的路径，可以在 arch/YOURARCH/boot/dts/SOC/ 中找到
 
-* `KERNEL_PREBUILT_DT` 适用于有预构建 DT 镜像的设备（如三星），并且需要在内核树中指定路径。
+* `KERNEL_PREBUILT_DT` 适用于具有预构建 DT 映像的设备（例如三星），并采用内核树中的路径。
 
-所有这些值可以通过提取 boot 镜像并使用 unpackbootimg 查看
+所有这些值都可以通过使用 unpackbootimg 提取启动映像来查看
 
-* `KERNEL_BOOTIMAGE_CMDLINE` 对应于“命令行参数”或“BOARD_KERNEL_CMDLINE”。`console=tty0` 和 `droidian.lvm.prefer` 应该被追加到 cmdline 中。确保从 cmdline 中删除任何 `systempart` 条目。
+* `KERNEL_BOOTIMAGE_CMDLINE` 对应于“cmdline”或“BOARD_KERNEL_CMDLINE” `console=tty0` 和 `droidian.lvm.prefer` 应附加到命令行。确保从命令行中删除任何“systempart”条目。
 
-* `KERNEL_BOOTIMAGE_PAGE_SIZE` 对应于“页面大小”或“BOARD_PAGE_SIZE”
+* `KERNEL_BOOTIMAGE_PAGE_SIZE` 对应 "page size" 或者 "BOARD_PAGE_SIZE"
 
-* `KERNEL_BOOTIMAGE_BASE_OFFSET` 对应于“基址”或“BOARD_KERNEL_BASE”
+* `KERNEL_BOOTIMAGE_BASE_OFFSET` 对应 "base" 或者 "BOARD_KERNEL_BASE"
 
-* `KERNEL_BOOTIMAGE_KERNEL_OFFSET` 对应于“内核加载地址”或“BOARD_KERNEL_OFFSET”
+* `KERNEL_BOOTIMAGE_KERNEL_OFFSET` 对应 "kernel load address" 或者 "BOARD_KERNEL_OFFSET"
 
-* `KERNEL_BOOTIMAGE_INITRAMFS_OFFSET` 对应于“ramdisk 加载地址”或“BOARD_RAMDISK_OFFSET”
+* `KERNEL_BOOTIMAGE_INITRAMFS_OFFSET` 对应 "ramdisk load address" 或者 "BOARD_RAMDISK_OFFSET"
 
-* `KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET` 对应于“第二启动加载地址”或“BOARD_SECOND_OFFSET”
+* `KERNEL_BOOTIMAGE_SECONDIMAGE_OFFSET` 对应 "second bootloader load address" 或者 "BOARD_SECOND_OFFSET"
 
-* `KERNEL_BOOTIMAGE_TAGS_OFFSET` 对应于“内核标签加载地址”或“BOARD_TAGS_OFFSET”
+* `KERNEL_BOOTIMAGE_TAGS_OFFSET` 对应 "kernel tags load address" 或者 "BOARD_TAGS_OFFSET"
 
-* `KERNEL_BOOTIMAGE_DTB_OFFSET` 对应于“dtb 地址”或“BOARD_DTB_OFFSET”
+* `KERNEL_BOOTIMAGE_DTB_OFFSET` 对应       "dtb address" 或者 "BOARD_DTB_OFFSET"
 
-虽然此选项仅在内核头文件版本 2 中是必需的，否则可以被注释掉。
+虽然此选项仅适用于内核标头版本2。 它可以被注释，否则。
 
-* `KERNEL_BOOTIMAGE_VERSION` 关联到内核头文件版本。设备发布时 Android 8 及以下为 0，Android 9 为 1，Android 10 为 2，Android 11 为 2，而 GKI 设备为 3。
+*'KERNEL_BOOTIMAGE_VERSION'与内核头版本相关。 使用Android8及更低版本推出的设备为0，Android9为1，Android10为2，Android11为2，GKI设备为3。
 
-* 对于三星设备，`DEVICE_VBMETA_IS_SAMSUNG` 必须设置为 1。
+*对于三星设备的DEVICE_VBMETA_IS_SAMSUNG'必须设置为1。
 
-* 对于大多数 Android 9 及以上发布的设备，`BUILD_CC` 是 clang，但如果你的内核在使用 `clang` 时无法编译，你可以尝试将值更改为 `aarch64-linux-android-gcc-4.9` 以使用 gcc 编译。
+*'BUILD_CC'对于大多数使用Android9及以上版本启动的设备来说是clang，但如果您的内核无法使用`clang`构建，您可以尝试将值更改为`aarch64-linux-android-gcc-4.9`以使用gcc构建。
 
-* 如果你的设备需要的工具链不包含在构建系统中，你可以手动下载工具链并将路径添加到 `BUILD_PATH`。
+*如果您的设备需要构建系统中未包含的工具链，则可以手动下载工具链并将路径添加到"BUILD_PATH"。
 
-* `DEB_BUILD_FOR` 和 `KERNEL_ARCH` 应根据设备架构进行更改。
+*'DEB_BUILD_FOR'和'KERNEL_ARCH'应根据设备架构进行更改。
 
-### 启用自动启动分区闪存
+###Enabling automatic boot partition flashing
 
-安装构建的包意味着内核及其模块已经到位——但用户仍然需要将其闪存到启动分区。
+安装构建的软件包意味着内核及其模块是
+到位-但用户仍然应该将其闪存到他们的启动分区。
 
-如果你希望启用自动闪存（通过 [flash-bootimage](https://github.com/droidian/flash-bootimage)），可以通过将 `FLASH_ENABLED` 设置为 1（这是默认值）来实现。
+如果您希望启用自动闪烁（通过[flash-bootimage]（https://github.com/droidian/flash-bootimage)),
+您可以通过将`FLASH_ENABLED`设置为1（这是默认值）来执行此操作。
 
-如果你的设备不支持 A/B 更新，请确保将 `FLASH_IS_LEGACY_DEVICE` 设置为 1。
+如果您的设备不支持A/B更新，请务必将`FLASH_IS_LEGACY_DEVICE'设置为1。
 
-注意，你需要指定一些设备信息，以便 `flash
+请注意，您需要指定一些设备信息，以便在设备上运行时"flash-bootimage"可以交叉检查:
+
+* `FLASH_INFO_MANUFACTURER`：`ro.product.vendor.manufacturer`的值
+安卓属性。在正在运行的 Droidian 系统上，您可以通过以下方式获取它
+
+	(device)$ sudo android_getprop ro.product.vendor.manufacturer
+
+* `FLASH_INFO_MODEL`: `ro.product.vendor.model` 的值
+安卓属性。在正在运行的 Droidian 系统上，您可以通过以下方式获取它
+
+	(device)$ sudo android_getprop ro.product.vendor.model
+
+* `FLASH_INFO_CPU`: 来自的相关信息 `/proc/cpuinfo`.
+
+如果`FLASH_INFO_MANUFACTURER`或`FLASH_INFO_MODEL'未定义（它们都是
+需要检查Android属性），'flash-bootimage`
+将检查'FLASH_INFO_CPU'。
+
+如果未指定设备特定信息，内核升级将会失败。
+
+F(x)tec Pro1 的示例：
+
+```
+FLASH_ENABLED = 1
+FLASH_INFO_MANUFACTURER = Fxtec
+FLASH_INFO_MODEL = QX1000
+FLASH_INFO_CPU = Qualcomm Technologies, Inc MSM8998
+```
+
+### 工具链
+
+Droidian ships
+
+* gcc 4.9 (legacy kernels)
+* clang-android-6.0-4691093 (recommended toolchain for android9)
+* clang-android-9.0-r353983c (recommended toolchain for android10)
+* clang-android-10.0-r370808 (recommended toolchain for android11)
+* clang-android-12.0-r416183b (recommended toolchain for android12-12.1)
+* clang-android-14.0-r450784d (recommended toolchain for android13)
+
+要使用 `clang-android-6.0-4691093` 将其添加到 `DEB_TOOLCHAIN` 并将 `BUILD_PATH` 设置为以下值
+
+`/usr/lib/llvm-android-6.0-4691093/bin`
+
+要使用 `clang-android-9.0-r353983c` 将其添加到 `DEB_TOOLCHAIN` 并将 `BUILD_PATH` 设置为以下值
+
+`/usr/lib/llvm-android-9.0-r353983c/bin`
+
+要使用 `clang-android-10.0-r370808` 将其添加到 `DEB_TOOLCHAIN` 并将 `BUILD_PATH` 设置为以下值
+
+`/usr/lib/llvm-android-10.0-r370808/bin`
+
+要使用 `clang-android-12.0-r416183b` 将其添加到 `DEB_TOOLCHAIN` 并将 `BUILD_PATH` 设置为以下值
+
+`/usr/lib/llvm-android-12.0-r416183b/bin`
+
+要使用 `clang-android-14.0-r450784d` 将其添加到 `DEB_TOOLCHAIN` 并将 `BUILD_PATH` 设置为以下值
+
+`/usr/lib/llvm-android-14.0-r450784d/bin`
+
+如果您使用的是较旧的设备并且您的内核未使用任何 clang 工具链进行编译，您可以回退到 GCC
+
+要使用 GCC，请将“BUILD_CC”从“clang”更改为“aarch64-linux-android-gcc-4.9”
+
+请记住，任何高于 4.4 的内核都应该可以使用 clang 正常编译，但总有例外。
+
+### Build target
+
+构建目标被传递给"make"，它告诉make命令我们在构建结束时的期望。
+
+默认构建目标是"图像"。生成图像并在制作gzip存档后添加dtb图像的gz`。
+
+'形象。gz-dtb'也可用于需要将DTB附加到内核末尾的旧设备。
+
+如果您的设备需要预先构建的dt，也可以使用"图像"
+
+您可以通过查看设备的设备树来查找设备所需的构建目标。
+
+### initramfs hooks
+
+如果 initramfs 出现任何问题（例如 unl0kr 在启用加密时显示黑屏），可以将脚本添加到将包含在 ramdisk 中的包中。
+
+[这个打包](https://github.com/droidian-devices/linux-android-fxtec-pro1x/blob/droidian/debian/initramfs-overlay/scripts/halium-hooks)可以作为参考。
+
+以下添加了一个将在启动时在 initramfs 中运行的函数。
+
+任何有助于系统启动的命令都可以添加到脚本中。
+
+### build rules
+
+在内核编译阶段（打包期间）之后失败的构建中，可以忽略错误。
+
+构建序列可以用`override_dh_sequence'来改变（确保用自己的序列替换序列）
+
+作为例子
+
+```
+override_dh_dwz:
+override_dh_strip:
+override_dh_makeshlibs:
+```
+
+可以添加到 `debian/rules` 的末尾。
+
+建议稍后返回并修复构建错误，而不是忽略它们，因为它们可能会在将来引起各种问题。
+
+内核适配
+-----------------
+
+至少需要在defconfig中启用这些选项
+
+其中一些选项可能无法使用，具体取决于您的内核版本，可以安全地忽略它们。
+
+```
+CONFIG_DEVTMPFS=y
+CONFIG_VT=y
+CONFIG_NAMESPACES=y
+CONFIG_MODULES=y
+CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
+CONFIG_USB_CONFIGFS_RNDIS=y
+CONFIG_USB_CONFIGFS_RMNET_BAM=y
+CONFIG_USB_CONFIGFS_MASS_STORAGE=y
+CONFIG_INIT_STACK_ALL_ZERO=y
+CONFIG_ANDROID_PARANOID_NETWORK=n
+CONFIG_ANDROID_BINDERFS=n
+```
+
+通常'CONFIG_NAMESPACES'应该启用所有命名空间选项，但如果没有，则应添加所有这些选项
+
+```
+CONFIG_SYSVIPC=y
+CONFIG_PID_NS=y
+CONFIG_IPC_NS=y
+CONFIG_UTS_NS=y
+```
+
+随后，对于其他组件，应在初始启动成功完成后启用各种选项。
+
+对于蓝牙，需要这些选项
+
+```
+CONFIG_BT=y
+CONFIG_BT_HIDP=y
+CONFIG_BT_RFCOMM=y
+CONFIG_BT_RFCOMM_TTY=y
+CONFIG_BT_BNEP=y
+CONFIG_BT_BNEP_MC_FILTER=y
+CONFIG_BT_BNEP_PROTO_FILTER=y
+CONFIG_BT_HCIVHCI=y
+```
+
+对于 Waydroid
+
+```
+CONFIG_SW_SYNC_USER=y
+CONFIG_NET_CLS_CGROUP=y
+CONFIG_CGROUP_NET_CLASSID=y
+CONFIG_VETH=y
+CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
+CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder"
+```
+
+对于Plymouth（开机动画）
+
+```
+# CONFIG_FB_SYS_FILLRECT is not set
+# CONFIG_FB_SYS_COPYAREA is not set
+# CONFIG_FB_SYS_IMAGEBLIT is not set
+# CONFIG_FB_SYS_FOPS is not set
+# CONFIG_FB_VIRTUAL is not set
+```
+
+为了简化调试，可以启用 pstore 以在每次启动时获取日志
+
+```
+CONFIG_PSTORE=y
+CONFIG_PSTORE_CONSOLE=y
+CONFIG_PSTORE_RAM=y
+CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
+```
+
+如果您启用了pstore，则可能会从恢复中找到"/sys/fs/pstore"中的线索。
+
+您可以使用menuconfig来确保所有选项都启用了其所有依赖项。
+
+	(docker)# mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig
+
+修改 defconfig 后，将 `out/KERNEL_OBJ/.config` 复制到 `arch/YOURARCH/configs/your_defconfig`。
+
+作为替代方案`'KERNEL_CONFIG_USE_FRAGMENTS=1'可以在`kernel-info.mk'在构建时将defconfig片段包含在defconfig中。
+
+defconfig片段应该放在内核源的根目录中，位于一个名为droidian的目录中。 [pro1](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/droidian/droidian)可以作为参考。
+
+可以启用'KERNEL_CONFIG_USE_DIFFCONFIG`以使用python脚本`diffconfig'来比较片段和主defconfig。
+
+要使用diffconfig，应该像这样提供diff文件
+
+`KERNEL_PRODUCT_DIFFCONFIG = diff_file`
+
+如果LXC无法启动，您可以在设备首次启动后使用`lxc-checkconfig`来检查可能需要的其他选项。
+
+编译
+---------
+
+现在`kernel-info.mk`已经被修改了，唯一剩下的就是
+就是真正编译内核。
+
+首先，（重新）创建 `debian/control` 文件：
+
+	(docker)# rm -f debian/control
+	(docker)# debian/rules debian/control
+
+现在一切就绪，您可以使用 `releng-build-package` 开始构建：
+
+	(docker)# RELENG_HOST_ARCH="arm64" releng-build-package
+
+交叉构建时需要'RELENG_HOST_ARCH'变量。
+
+如果一切顺利，您将在`$PACKAGES_DIR`中找到生成的包。
+
+DTB/DTBO 编译失败
+----------------------------
+
+如果 DTB/DTBO 编译失败，最好尝试使用外部 dtc 编译器而不是内核树中存在的编译器。
+
+要在构建控制文件后执行此操作，请将“device-tree-compiler”添加到“Build-Depends”，然后在“debian/rules”中的 include 行添加之后
+
+`BUILD_COMMAND := $(BUILD_COMMAND) DTC_EXT=/usr/bin/dtc`
+
+获取启动镜像
+------------------------
+
+启动映像被运送到“linux-bootimage-VERSION-VENDOR-DEVICE”包中。
+
+您可以通过使用“dpkg-deb”解压软件包来获取 boot.img 或
+通过直接从编译的工件（`out/KERNEL_OBJ/boot.img`）中获取。
+
+内核镜像已经嵌入了 Droidian initramfs。
+
+确保保存所有“linux-*.deb”软件包，因为您将在指南中进一步需要这些软件包。
+
+提交更改
+------------------
+
+当您对内核感到满意时，请务必将您的更改以及 debian 打包提交到 git 存储库：
+
+* debian/source/
+* debian/control
+* debian/rules
+* debian/compat
+* debian/kernel-info.mk
+
+...然后推送你的“droidian”分支供其他人享用。
