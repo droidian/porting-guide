@@ -16,7 +16,6 @@ Droidian 的目标是使 Debian 能在 Android 手机上运行。
 
 本移植指南还提供以下语言版本：
 * [English](https://github.com/droidian/porting-guide)
-  
 
 内容
 --------
