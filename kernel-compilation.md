@@ -290,87 +290,9 @@ It is recommended to come back and fix the build errors later on instead of igno
 Kernel adaptation
 -----------------
 
-As a bare minimum these options need to be enabled in your defconfig
+For various android common kernels, Droidian provides ready-to-use config fragments.
 
-Some of these options might not be available to you depending on your kernel version, they can be safely ignored.
-
-```
-CONFIG_DEVTMPFS=y
-CONFIG_VT=y
-CONFIG_NAMESPACES=y
-CONFIG_MODULES=y
-CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
-CONFIG_USB_CONFIGFS_RNDIS=y
-CONFIG_USB_CONFIGFS_RMNET_BAM=y
-CONFIG_USB_CONFIGFS_MASS_STORAGE=y
-CONFIG_INIT_STACK_ALL_ZERO=y
-CONFIG_ANDROID_PARANOID_NETWORK=n
-CONFIG_ANDROID_BINDERFS=n
-```
-
-Usually `CONFIG_NAMESPACES` enables all the namespace options but if it did not, all these options should be added
-
-```
-CONFIG_SYSVIPC=y
-CONFIG_PID_NS=y
-CONFIG_IPC_NS=y
-CONFIG_UTS_NS=y
-```
-
-Later on for other components, various options should be enabled after the initial boot is done successfully.
-
-For Bluetooth these options are required
-
-```
-CONFIG_BT=y
-CONFIG_BT_HIDP=y
-CONFIG_BT_RFCOMM=y
-CONFIG_BT_RFCOMM_TTY=y
-CONFIG_BT_BNEP=y
-CONFIG_BT_BNEP_MC_FILTER=y
-CONFIG_BT_BNEP_PROTO_FILTER=y
-CONFIG_BT_HCIVHCI=y
-```
-
-For Waydroid
-
-```
-CONFIG_SW_SYNC_USER=y
-CONFIG_NET_CLS_CGROUP=y
-CONFIG_CGROUP_NET_CLASSID=y
-CONFIG_VETH=y
-CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
-CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder"
-```
-
-For Plymouth (boot animation)
-
-```
-# CONFIG_FB_SYS_FILLRECT is not set
-# CONFIG_FB_SYS_COPYAREA is not set
-# CONFIG_FB_SYS_IMAGEBLIT is not set
-# CONFIG_FB_SYS_FOPS is not set
-# CONFIG_FB_VIRTUAL is not set
-```
-
-To ease debugging, pstore can be enabled to get logs on each boot
-
-```
-CONFIG_PSTORE=y
-CONFIG_PSTORE_CONSOLE=y
-CONFIG_PSTORE_RAM=y
-CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
-```
-
-If you have pstore enabled, you might find clues in `/sys/fs/pstore` from your recovery.
-
-You can use menuconfig to make sure all the options are enabled with all their dependencies.
-
-	(docker)# mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig
-
-After modifying your defconfig, copy `out/KERNEL_OBJ/.config` to `arch/YOURARCH/configs/your_defconfig`.
-
-As an alternative, `KERNEL_CONFIG_USE_FRAGMENTS = 1` can be set in `kernel-info.mk` to include defconfig fragments inside your defconfig on build time.
+`KERNEL_CONFIG_USE_FRAGMENTS = 1` can be set in `kernel-info.mk` to include defconfig fragments inside your defconfig on build time.
 
 defconfig fragments should be placed in the root of the kernel source in a directory called droidian. [this source](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/droidian/droidian) can be taken as a reference.
 
