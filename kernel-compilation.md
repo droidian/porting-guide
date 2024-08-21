@@ -289,90 +289,11 @@ override_dh_makeshlibs:
 
 内核适配
 -----------------
+Droidian 提供了配置片段。
 
-至少需要在defconfig中启用这些选项
+`'KERNEL_CONFIG_USE_FRAGMENTS=1'可以在`kernel-info.mk'在构建时将defconfig片段包含在defconfig中。
 
-其中一些选项可能无法使用，具体取决于您的内核版本，可以安全地忽略它们。
-
-```
-CONFIG_DEVTMPFS=y
-CONFIG_VT=y
-CONFIG_NAMESPACES=y
-CONFIG_MODULES=y
-CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
-CONFIG_USB_CONFIGFS_RNDIS=y
-CONFIG_USB_CONFIGFS_RMNET_BAM=y
-CONFIG_USB_CONFIGFS_MASS_STORAGE=y
-CONFIG_INIT_STACK_ALL_ZERO=y
-CONFIG_ANDROID_PARANOID_NETWORK=n
-CONFIG_ANDROID_BINDERFS=n
-```
-
-通常'CONFIG_NAMESPACES'应该启用所有命名空间选项，但如果没有，则应添加所有这些选项
-
-```
-CONFIG_SYSVIPC=y
-CONFIG_PID_NS=y
-CONFIG_IPC_NS=y
-CONFIG_UTS_NS=y
-```
-
-随后，对于其他组件，应在初始启动成功完成后启用各种选项。
-
-对于蓝牙，需要这些选项
-
-```
-CONFIG_BT=y
-CONFIG_BT_HIDP=y
-CONFIG_BT_RFCOMM=y
-CONFIG_BT_RFCOMM_TTY=y
-CONFIG_BT_BNEP=y
-CONFIG_BT_BNEP_MC_FILTER=y
-CONFIG_BT_BNEP_PROTO_FILTER=y
-CONFIG_BT_HCIVHCI=y
-```
-
-对于 Waydroid
-
-```
-CONFIG_SW_SYNC_USER=y
-CONFIG_NET_CLS_CGROUP=y
-CONFIG_CGROUP_NET_CLASSID=y
-CONFIG_VETH=y
-CONFIG_NETFILTER_XT_TARGET_CHECKSUM=y
-CONFIG_ANDROID_BINDER_DEVICES="binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder"
-```
-
-对于Plymouth（开机动画）
-
-```
-# CONFIG_FB_SYS_FILLRECT is not set
-# CONFIG_FB_SYS_COPYAREA is not set
-# CONFIG_FB_SYS_IMAGEBLIT is not set
-# CONFIG_FB_SYS_FOPS is not set
-# CONFIG_FB_VIRTUAL is not set
-```
-
-为了简化调试，可以启用 pstore 以在每次启动时获取日志
-
-```
-CONFIG_PSTORE=y
-CONFIG_PSTORE_CONSOLE=y
-CONFIG_PSTORE_RAM=y
-CONFIG_PSTORE_RAM_ANNOTATION_APPEND=y
-```
-
-如果您启用了pstore，则可能会从恢复中找到"/sys/fs/pstore"中的线索。
-
-您可以使用menuconfig来确保所有选项都启用了其所有依赖项。
-
-	(docker)# mkdir -p out/KERNEL_OBJ && make ARCH=arm64 O=out/KERNEL_OBJ/ your_defconfig && make ARCH=arm64 O=out/KERNEL_OBJ/ menuconfig
-
-修改 defconfig 后，将 `out/KERNEL_OBJ/.config` 复制到 `arch/YOURARCH/configs/your_defconfig`。
-
-作为替代方案`'KERNEL_CONFIG_USE_FRAGMENTS=1'可以在`kernel-info.mk'在构建时将defconfig片段包含在defconfig中。
-
-defconfig片段应该放在内核源的根目录中，位于一个名为droidian的目录中。 [pro1](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/droidian/droidian)可以作为参考。
+defconfig片段应该放在内核源的根目录中，位于一个名为droidian的目录中。 [pro1x](https://github.com/droidian-devices/linux-android-fxtec-pro1x/tree/droidian/droidian)可以作为参考。
 
 可以启用'KERNEL_CONFIG_USE_DIFFCONFIG`以使用python脚本`diffconfig'来比较片段和主defconfig。
 
