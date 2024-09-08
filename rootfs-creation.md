@@ -102,7 +102,7 @@ ARCH 可以是 arm64、armhf 或 amd64
 
 	(host)$ cd ~/droidian-build-tools/droidian/vendor/代号/droidian
 	(host)$ mkdir images
-	(host)$ docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/ buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:current-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="nightly" ./generate_device_recipe.pyvendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
+	(host)$ docker run --privileged -v $PWD/images:/buildd/out -v /dev:/host-dev -v /sys/fs/cgroup:/sys/fs/cgroup -v $PWD:/ buildd/sources --security-opt seccomp:unconfined quay.io/droidian/rootfs-builder:current-amd64 /bin/sh -c 'cd /buildd/sources; DROIDIAN_VERSION="next" ./generate_device_recipe.pyvendor_codename ARCH phosh phone APIVER && debos --disable-fakemachine generated/droidian.yaml'
 
 如果一切正常，您应该在“~/droidian-build-tools/droidian/vendor/codename/packages/adaptation-vendor-codename/droidian/images/”中拥有 LVM fastboot 可 flash  rootfs 映像。
 
