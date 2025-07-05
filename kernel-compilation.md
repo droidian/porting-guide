@@ -28,7 +28,7 @@ If your device has shipped with Android 8.1 or 9, it probably is GSI (Generic Sy
 This will reduce the amount of work the porter has to do significantly.
 
 If your device doesn't support GSI, you'll also need to compile a patched system image.
-The documentation for image creation can be found in [this guide](./image-creation.md)
+The documentation for image creation can be found in [this guide](./rootfs-creation.md)
 
 On Halium, the Android kernel is built via the standard Android toolchain.
 While this makes sense, on GSI-capable devices this can be a waste of time since often only kernel changes are required.
