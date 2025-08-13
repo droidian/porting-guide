@@ -8,7 +8,7 @@ Table of contents
 
 * [Summary](#summary)
 * [Pre boot tips](#pre-boot-tips)
-* [Tips for when the systen is booted with shell](#tips-for-when-the-systen-is-booted-with-shell)
+* [Tips for when the system is booted with shell](#tips-for-when-the-system-is-booted-with-shell)
 * [Tips for when the system is up with Phosh](#tips-for-when-the-system-is-up-with-phosh)
 
 Summary
@@ -51,7 +51,7 @@ logs might be looked for in recovery.
 
 Nightly releases embed devtools on the rootfs. If you have trouble installing devtools
 on a snapshot release, consider trying a nightly image so that you don't need to install
-it separatedly.
+it separately.
 
 ### Double-check cmdline for the `systempart=` option
 
@@ -196,7 +196,7 @@ Put the content of the service file
 
 	(recovery)$ systemctl enable ssh-fix
 
-Tips for when the systen is booted with shell
+Tips for when the system is booted with shell
 ---------------------------------------------
 
 **Before proceeding, read the previous section, those tips might be useful as well.**
@@ -299,7 +299,7 @@ Save and reboot.
 
 ### Vendor is not mounted
 
-It is possible that the vendor partition doesn't get mounted by init and as a result the Halium contianer cannot start much of the services.
+It is possible that the vendor partition doesn't get mounted by init and as a result the Halium container cannot start much of the services.
 
 First off check if the vendor image is mounted
 
@@ -323,7 +323,7 @@ Make sure to come back to this issue later to find a proper solution.
 
 ### lxc@android and phosh started but no output
 
-If phosh and lxc@android have started with udev rules in plcae but there is no output on the screen, it is possible that vndservicemanager is crashing.
+If phosh and lxc@android have started with udev rules in place but there is no output on the screen, it is possible that vndservicemanager is crashing.
 
 On some Halium 10 devices, a patched version of vndservicemanager might be used to have vndservicemanager start. a patched version of vndservicemanager can be found [here](https://github.com/droidian-devices/adaptation-droidian-starqlte/blob/droidian/usr/lib/droid-vendor-overlay/bin/vndservicemanager).
 
@@ -372,7 +372,7 @@ and put [phoc.ini](https://github.com/droidian-devices/adaptation-droidian-miato
 
 the value for `output:HWCOMPOSER-1` can be adjusted as needed.
 
-### vendor parititon overlay
+### vendor partition overlay
 
 To overlay a file over the vendor partition, `droid-vendor-overlay` directory can be used
 
