@@ -84,7 +84,6 @@ And create the skeleton packaging:
 	(docker)# cd /buildd/sources
 	(docker)# mkdir -p debian/source
 	(docker)# cp -v /usr/share/linux-packaging-snippets/kernel-info.mk.example debian/kernel-info.mk
-	(docker)# echo 13 > debian/compat
 	(docker)# echo "3.0 (native)" > debian/source/format
 	(docker)# cat > debian/rules <<EOF
 	#!/usr/bin/make -f
